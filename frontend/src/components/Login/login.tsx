@@ -1,9 +1,11 @@
 import axios from "axios";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,7 +20,11 @@ const Login = () => {
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("isAdmin", res.data.isAdmin);
 
-      alert(res.data.isAdmin ? "Logged in as Admin" : "Logged in as User");
+      if (res.data.isAdmin) {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
     } catch (err: any) {
       alert(err.response?.data?.message || "Login failed");
     }
