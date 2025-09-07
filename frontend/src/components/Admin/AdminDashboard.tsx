@@ -1,42 +1,37 @@
 // AdminDashboard.tsx
 import { useState } from "react";
-import axios from "axios";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
 
 export default function AdminDashboard() {
   const [title, setTitle] = useState("");
-  const [image, setImage] = useState("");
   const [category, setCategory] = useState("Phones");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
-  const [preview, setPreview] = useState<string>("");
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setImage(file);
-      setPreview(URL.createObjectURL(file)); // preview image
-    }
-  };
+  const [images, setImages] = useState<FileList | null>(null);
+  const [coverImage, setCoverImage] = useState<File | null>(null);
 
   const handleAdd = async () => {
-    const token = localStorage.getItem("token");
     const formData = new FormData();
     formData.append("title", title);
     formData.append("description", description);
     formData.append("category", category);
     formData.append("price", price);
-    if (image) formData.append("image", image); // 👈 send file
+    if (coverImage) formData.append("coverImage", coverImage);
+    if (images) {
+      Array.from(images).forEach((file) => formData.append("images", file));
+    }
 
-    await axios.post("http://localhost:5000/api/items", formData, {
-      headers: { 
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data"
-      }
+    const res = await fetch("http://localhost:5000/api/items", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: formData,
     });
-
-    alert("Product added successfully!");
+    
+    const data = await res.json();
+    alert(data.message || "Item added successfully");
   };
 
   return (
@@ -46,14 +41,6 @@ export default function AdminDashboard() {
       <h2 className="text-2xl font-bold">Add Product</h2>
       <input className="border p-2 m-2" placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
       <input className="border p-2 m-2" placeholder="Description" value={description} onChange={(e)=>setDescription(e.target.value)} />
-      <label className="cursor-pointer border p-4 m-2 flex flex-col items-center justify-center w-48 h-48">
-          {preview ? (
-            <img src={preview} alt="preview" className="w-full h-full object-cover" />
-          ) : (
-            <span>Click to upload image</span>
-          )}
-          <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
-        </label>
       <input className="border p-2 m-2" placeholder="Price" value={price} onChange={(e) => setPrice(e.target.value)} />
       <select className="border p-2 m-2" value={category} onChange={(e) => setCategory(e.target.value)}>
         <option>Phones</option>
@@ -61,6 +48,8 @@ export default function AdminDashboard() {
         <option>Accessories</option>
         <option>Others</option>
       </select>
+      <input type="file" className="border p-2 m-2" onChange={(e) => setCoverImage(e.target.files?.[0] || null)} />
+      <input type="file" multiple className="border p-2 m-2" onChange={(e) => setImages(e.target.files || null)} />
       <button onClick={handleAdd} className="bg-black text-white px-4 py-2">Add</button>
     </div>
     <Footer />

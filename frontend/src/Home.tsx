@@ -1,6 +1,7 @@
 import React from 'react'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
+import { Link } from 'react-router-dom'
 
 const Home = () => {
   return (
@@ -16,29 +17,30 @@ const Home = () => {
         </section>
 
         {/* Categories */}
-      <section id="categories" className="bg-black text-white py-12">
-        <h2 className="text-center text-2xl font-semibold mb-8">Categories</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
-          {[
-            { name: "Phones", img: '/src/assets/image1.png' },
-            { name: "Watches", img: "/src/assets/image2.png" },
-            { name: "Accessories", img: "/src/assets/image3.png" },
-            { name: "Others", img: "/src/assets/image4.png" },
-          ].map((cat) => (
-            <div
-              key={cat.name}
-              className="flex flex-col items-center bg-white rounded-2xl shadow-md overflow-hidden"
-            >
-              <img src={cat.img} alt={cat.name} className="w-full h-48 object-cover" />
-              <p className="py-2 text-black font-medium">{cat.name}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+        <section id="categories" className="bg-black text-white py-12">
+          <h2 className="text-center text-2xl font-semibold mb-8">Categories</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+            {[
+              { name: "Phones", img: "/src/assets/image1.png" },
+              { name: "Watches", img: "/src/assets/image2.png" },
+              { name: "Accessories", img: "/src/assets/image3.png" },
+              { name: "Others", img: "/src/assets/image4.png" },
+            ].map((cat) => (
+              <Link
+                key={cat.name}
+                to={`/category/${cat.name}`}
+                className="flex flex-col items-center bg-white rounded-2xl shadow-md overflow-hidden hover:scale-105 transition-transform"
+              >
+                <img src={cat.img} alt={cat.name} className="w-full h-48 object-cover" />
+                <p className="py-2 text-black font-medium">{cat.name}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
 
-      {/* Top Picks */}
+      {/* New Ones */}
       <section id="top-picks" className="py-12">
-        <h2 className="text-center text-2xl font-semibold mb-8">Top Picks</h2>
+        <h2 className="text-center text-2xl font-semibold mb-8">New Ones</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
           {["/src/assets/image5.png", "/src/assets/image6.png", "/src/assets/image1.png", "/src/assets/image1.png"].map((src, idx) => (
             <div
