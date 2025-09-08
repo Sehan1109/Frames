@@ -4,6 +4,7 @@ import Home from './Home'
 import AdminDashboard from './components/Admin/AdminDashboard'
 import CategoryPage from './components/CollectionPage/CollectionPage'
 import ItemPage from './components/ItemPage/ItemPage'
+import NewItemsPage from './components/NewItemsPage/NewItems'
 
 function App() {
 
@@ -13,6 +14,7 @@ function App() {
         <Route path='/admin' element={<AdminDashboard />} />
         <Route path='/category/:category' element={<CategoryPage />} />
         <Route path='/item/:id' element={<ItemPage />} />
+        <Route path='/items' element={<NewItemsPage />} />
       </Routes>
   )
 }

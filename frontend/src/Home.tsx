@@ -1,9 +1,32 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import { Link } from 'react-router-dom'
+import axios from 'axios';
+
+interface Item {
+  _id: string;
+  title: string;
+  description: string;
+  price: number;
+  coverImage?: string;
+}
 
 const Home = () => {
+  const [latestItems, setLatestItems] = useState<Item[]>([]);
+
+  useEffect(() => {
+    const fetchLatest = async () => {
+      try {
+        const res = await axios.get('http://localhost:5000/api/items/latest');
+        setLatestItems(res.data);
+      } catch (err) {
+        console.error('Error fetching latest items:', err);
+      }
+    };
+    fetchLatest();
+  }, []);
+
   return (
     <div className="w-full min-h-screen bg-white text-black flex flex-col">
         <Navbar />
@@ -42,14 +65,32 @@ const Home = () => {
       <section id="top-picks" className="py-12">
         <h2 className="text-center text-2xl font-semibold mb-8">New Ones</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
-          {["/src/assets/image5.png", "/src/assets/image6.png", "/src/assets/image1.png", "/src/assets/image1.png"].map((src, idx) => (
-            <div
-              key={idx}
-              className="flex flex-col items-center bg-white rounded-2xl shadow-md overflow-hidden"
+          {latestItems.map((item) => (
+            <Link
+              key={item._id}
+              to={`/item/${item._id}`}
+              className="flex flex-col items-center bg-white rounded-2xl shadow-md overflow-hidden hover:scale-105 transition-transform"
             >
-              <img src={src} alt={`Pick ${idx + 1}`} className="w-full h-56 object-cover" />
-            </div>
+              {item.coverImage && (
+                <img
+                  src={`http://localhost:5000/${item.coverImage}`}
+                  alt={item.title}
+                  className="w-full h-56 object-cover"
+                />
+              )}
+              <p className="py-2 text-black font-medium">{item.title}</p>
+              <p className="px-4 text-center text-sm text-gray-500 flex-grow">{item.description}</p>
+              <p className="text-gray-600">${item.price.toFixed(2)}</p>
+            </Link>
           ))}
+        </div>
+        <div className="flex justify-center mt-6">
+          <Link
+            to="/items"
+            className="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition"
+          >
+            More →
+          </Link>
         </div>
       </section>
 

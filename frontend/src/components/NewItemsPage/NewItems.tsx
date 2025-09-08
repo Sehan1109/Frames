@@ -1,0 +1,60 @@
+// ItemsPage.tsx
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { Link } from "react-router-dom";
+import Navbar from "../Navbar";
+import Footer from "../Footer";
+
+interface Item {
+  _id: string;
+  title: string;
+  description: string;
+  price: number;
+  coverImage?: string;
+}
+
+export default function NewItemsPage() {
+  const [items, setItems] = useState<Item[]>([]);
+
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/items/all");
+        setItems(res.data);
+      } catch (err) {
+        console.error("Error fetching all items:", err);
+      }
+    };
+    fetchItems();
+  }, []);
+
+  return (
+    <div className="flex flex-col min-h-screen bg-gray-100">
+      <Navbar />
+      <main className="flex-1 py-12">
+        <h2 className="text-black text-center text-2xl font-bold mb-8">All Items</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {items.map((item) => (
+            <Link
+              key={item._id}
+              to={`/item/${item._id}`}
+              className="bg-white rounded-lg shadow-md p-4 text-center hover:scale-105 transition-transform"
+            >
+              {item.coverImage && (
+                <img
+                  src={`http://localhost:5000/${item.coverImage}`}
+                  alt={item.title}
+                  className="w-full h-48 object-cover rounded-md mb-4"
+                />
+              )}
+              <h3 className="font-semibold text-black">{item.title}</h3>
+              <p className="text-gray-500">{item.description}</p>
+              <p className="text-black text-lg font-bold mt-2">${item.price}</p>
+            </Link>
+          ))}
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+}
