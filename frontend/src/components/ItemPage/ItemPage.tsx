@@ -6,6 +6,7 @@ import Navbar from "../Navbar";
 import Footer from "../Footer";
 import StarRating from "../StarRating/StarRating";
 import ReviewModal from "../ReviewModal/ReviewModal";
+import { Globe, CheckCircle, Gift, Lock } from "lucide-react";
 
 interface Item {
   _id: string;
@@ -46,15 +47,33 @@ export default function ItemPage() {
     fetchData();
   }, [id]);
 
-  const submitReview = async (rating: number, comment: string) => {
+  const submitReview = async (
+    rating: number,
+    comment: string,
+    images: File[]
+  ) => {
     try {
+      const formData = new FormData();
+      formData.append("rating", String(rating));
+      formData.append("comment", comment);
+
+      // ✅ match field name with backend ("reviewImages")
+      images.forEach((img) => {
+        formData.append("reviewImages", img);
+      });
+
       await axios.post(
         `http://localhost:5000/api/items/${id}/reviews`,
-        { rating, comment },
+        formData, // ✅ send FormData
         {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "multipart/form-data",
+          },
         }
       );
+
+      // refresh reviews after submit
       const res = await axios.get(
         `http://localhost:5000/api/items/${id}/reviews`
       );
@@ -70,7 +89,7 @@ export default function ItemPage() {
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-1 py-12 px-4 bg-gray-100 text-black">
-        <div className="max-w-5xl mx-auto bg-white p-6 rounded-lg shadow-md">
+        <div className="max-w-6xl mx-auto bg-white p-20 rounded-lg shadow-md">
           {/* Grid layout */}
           <div className="grid md:grid-cols-2 gap-6">
             {/* Left: Images */}
@@ -79,70 +98,107 @@ export default function ItemPage() {
                 <img
                   src={`http://localhost:5000/${item.coverImage}`}
                   alt={item.title}
-                  className="w-full h-80 object-cover rounded-lg shadow mb-4"
+                  className="w-96 h-96 object-cover rounded-lg shadow mb-4"
                 />
               )}
-              <div className="grid grid-cols-3 gap-2">
-                {item.images?.map((img, idx) => (
-                  <img
-                    key={idx}
-                    src={`http://localhost:5000/${img}`}
-                    alt={`extra-${idx}`}
-                    className="w-full h-24 object-cover rounded-md"
-                  />
-                ))}
-              </div>
             </div>
 
             {/* Right: Details */}
-            <div>
+            <div className="px-8">
               <h2 className="text-3xl font-bold mb-4">{item.title}</h2>
               <p
-                className="font-bold flex items-center cursor-pointer"
+                className="font-bold flex items-center cursor-pointer mb-4"
                 onClick={() => setIsModalOpen(true)} // ⭐ click stars -> open modal
               >
-                <StarRating value={item.rating || 0} size={28} />
+                <StarRating value={item.rating || 0} size={28} readOnly />
                 <span className="ml-2">({item.numReviews} reviews)</span>
               </p>
+              <p className="text-2xl font-semibold mb-2">${item.price} USD</p>
 
-              <p className="text-gray-600 mb-6">{item.description}</p>
-              <p className="text-2xl font-bold mb-6">${item.price}</p>
+              <div className="mb-4 py-5 text-gray-800">
+                <div className="flex items-center gap-2 mb-4">
+                  <Globe size={20} />
+                  <span>Worldwide Shipping</span>
+                </div>
+                <div className="flex items-center gap-2 mb-4">
+                  <CheckCircle size={20} />
+                  <span>Handcrafted with Care</span>
+                </div>
+                <div className="flex items-center gap-2 mb-4">
+                  <Gift size={20} />
+                  <span>Gift Wrapped</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Lock size={20} />
+                  <span>Secure Payments</span>
+                </div>
+              </div>
               <button className="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800">
                 Buy
               </button>
             </div>
           </div>
 
-          {/* Reviews */}
-          <div className="mt-10">
-            <h2 className="text-xl font-semibold mb-4">Customer Reviews</h2>
+          <p className="text-gray-600 mb-6">{item.description}</p>
 
-            {/* Button with hover trigger */}
-            <div
-              onMouseEnter={() => setIsModalOpen(true)} // 👈 open on hover
-              onMouseLeave={() => setIsModalOpen(false)} // 👈 close when leave
-              className="inline-block"
-            >
-              <button className="mb-4 px-4 py-2 bg-black text-white rounded">
-                Write a Review
+          {/* ✅ Full-width Images Section */}
+          {item.images && item.images.length > 0 && (
+            <div className="w-full mt-8">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {item.images.map((img, idx) => (
+                  <img
+                    key={idx}
+                    src={`http://localhost:5000/${img}`}
+                    alt={`extra-${idx}`}
+                    className="w-full h-56 object-cover rounded-lg shadow"
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ✅ Reviews Section */}
+          <div className="mt-10">
+            <h2 className="text-2xl font-bold mb-6">Customer Reviews</h2>
+
+            {/* Top Summary */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
+              <div>
+                <StarRating value={item.rating || 0} size={28} readOnly />
+                <p className="text-gray-700">
+                  Based on {item.numReviews} reviews
+                </p>
+              </div>
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="border px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800"
+              >
+                Write a review
               </button>
             </div>
 
-            {reviews.length === 0 && <p>No reviews yet</p>}
-            {reviews.map((r) => (
-              <div key={r._id} className="border-b py-3">
-                <p className="font-bold flex items-center">
-                  {r.user.name}
-                  <span className="ml-2">
-                    <StarRating value={r.rating} size={20} />
+            {/* Reviews List */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {reviews.length === 0 && <p>No reviews yet</p>}
+              {reviews.map((r) => (
+                <div
+                  key={r._id}
+                  className="border rounded-lg p-4 shadow-sm bg-gray-50"
+                >
+                  <p className="font-bold">{r.user.name}</p>
+                  <p className="text-sm text-gray-500">
+                    {new Date(r.createdAt).toLocaleDateString()}
+                  </p>
+                  <span className="inline-block bg-black text-white text-xs px-2 py-1 rounded mt-1">
+                    Verified
                   </span>
-                </p>
-                <p>{r.comment}</p>
-                <p className="text-sm text-gray-500">
-                  {new Date(r.createdAt).toLocaleDateString()}
-                </p>
-              </div>
-            ))}
+                  <div className="mt-2">
+                    <StarRating value={r.rating} size={20} readOnly />
+                  </div>
+                  <p className="mt-2 text-gray-700">{r.comment}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </main>

@@ -4,30 +4,44 @@ import StarRating from "../StarRating/StarRating";
 interface ReviewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (rating: number, comment: string) => void;
+  onSubmit: (rating: number, comment: string, images: File[]) => void;
 }
 
 const ReviewModal = ({ isOpen, onClose, onSubmit }: ReviewModalProps) => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
+  const [images, setImages] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
 
   if (!isOpen) return null;
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      setImages(files);
+      setPreviewUrls(files.map((file) => URL.createObjectURL(file)));
+    }
+  };
 
   const handleSubmit = () => {
     if (rating === 0) {
       alert("Please select a rating");
       return;
     }
-    onSubmit(rating, comment);
+    onSubmit(rating, comment, images);
     setRating(0);
     setComment("");
+    setImages([]);
+    setPreviewUrls([]);
     onClose();
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
-        <h2 className="text-xl font-bold mb-4">Write a Review</h2>
+        <h2 className="text-xl text-black font-bold mb-4 text-center">
+          Write a Review
+        </h2>
         {/* Star rating */}
         <StarRating
           value={rating}
@@ -43,9 +57,31 @@ const ReviewModal = ({ isOpen, onClose, onSubmit }: ReviewModalProps) => {
           placeholder="Write your review..."
         />
 
+        {/* Image upload */}
+        <div className="mt-4">
+          <label className="block font-semibold mb-2">Add Photos</label>
+          <input
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={handleImageChange}
+          />
+          {/* Preview selected images */}
+          <div className="flex gap-2 mt-2 flex-wrap">
+            {previewUrls.map((url, idx) => (
+              <img
+                key={idx}
+                src={url}
+                alt={`Preview ${idx + 1}`}
+                className="w-20 h-20 object-cover rounded border"
+              />
+            ))}
+          </div>
+        </div>
+
         {/* Buttons */}
         <div className="flex justify-end mt-4 space-x-2">
-          <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">
+          <button onClick={onClose} className="px-4 py-2 bg-red-600 rounded">
             Cancel
           </button>
           <button

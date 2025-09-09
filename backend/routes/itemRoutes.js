@@ -6,10 +6,10 @@ import Item from "../models/Item.js";
 
 const router = express.Router();
 
-// Multer storage
+// ================= Multer Storage =================
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, "uploads/");
+        cb(null, "uploads/"); // save to /uploads
     },
     filename: (req, file, cb) => {
         cb(null, Date.now() + "-" + file.originalname);
@@ -17,6 +17,8 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
+
+// ================== Item Routes ===================
 
 // Add new item (admin only)
 router.post(
@@ -79,45 +81,54 @@ router.get("/:id", async (req, res) => {
     }
 });
 
-// Add review to item
-router.post("/:id/reviews", protect, async (req, res) => {
-    const { rating, comment } = req.body;
+// ================== Add Review ===================
+router.post(
+    "/:id/reviews",
+    protect,
+    upload.array("reviewImages", 3), // allow up to 3 review images
+    async (req, res) => {
+        const { rating, comment } = req.body;
 
-    try {
-        const item = await Item.findById(req.params.id);
-        if (!item) {
-            return res.status(404).json({ message: "Item not found" });
+        try {
+            const item = await Item.findById(req.params.id);
+            if (!item) {
+                return res.status(404).json({ message: "Item not found" });
+            }
+
+            // check if already reviewed
+            const alreadyReviewed = item.reviews.find(
+                (r) => r.user.toString() === req.user._id.toString()
+            );
+            if (alreadyReviewed) {
+                return res.status(400).json({ message: "Item already reviewed" });
+            }
+
+            // collect uploaded image paths
+            const reviewImages = req.files ? req.files.map(f => f.filename) : [];
+
+            // add review
+            const review = {
+                user: req.user._id,
+                name: req.user.name,
+                rating: Number(rating),
+                comment,
+                images: reviewImages, // ✅ save images here
+            };
+            item.reviews.push(review);
+
+            // update numReviews & average rating
+            item.numReviews = item.reviews.length;
+            item.rating =
+                item.reviews.reduce((acc, r) => acc + r.rating, 0) / item.reviews.length;
+
+            await item.save();
+
+            res.status(201).json({ message: "Review added successfully" });
+        } catch (err) {
+            console.error(err.message);
+            res.status(500).json({ message: "Server error" });
         }
-
-        // check if already reviewed
-        const alreadyReviewed = item.reviews.find(
-            (r) => r.user.toString() === req.user._id.toString()
-        );
-        if (alreadyReviewed) {
-            return res.status(400).json({ message: "Item already reviewed" });
-        }
-
-        // add review
-        const review = {
-            user: req.user._id,
-            name: req.user.name,   // ✅ required in schema
-            rating: Number(rating),
-            comment,
-        };
-        item.reviews.push(review);
-
-        // update numReviews & average rating
-        item.numReviews = item.reviews.length;
-        item.rating =
-            item.reviews.reduce((acc, r) => acc + r.rating, 0) / item.reviews.length;
-
-        await item.save();
-
-        res.status(201).json({ message: "Review added" });
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).json({ message: "Server error" });
     }
-});
+);
 
 export default router;
