@@ -9,7 +9,7 @@ const router = express.Router();
 // Multer storage
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, "uploads/"); // Save in uploads folder
+        cb(null, "uploads/");
     },
     filename: (req, file, cb) => {
         cb(null, Date.now() + "-" + file.originalname);
@@ -29,8 +29,8 @@ router.post(
     addItem
 );
 
+// Get items
 router.get("/", getItems);
-router.post("/", protect, addItem);
 
 // Get items by category
 router.get("/category/:category", getItemsByCategory);
@@ -57,7 +57,18 @@ router.get("/all", async (req, res) => {
     }
 });
 
+// Get reviews for an item
+router.get("/:id/reviews", async (req, res) => {
+    try {
+        const item = await Item.findById(req.params.id).populate("reviews.user", "name");
+        if (!item) return res.status(404).json({ message: "Item not found" });
+        res.json(item.reviews);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
 
+// Get single item
 router.get("/:id", async (req, res) => {
     try {
         const item = await Item.findById(req.params.id);
@@ -74,11 +85,39 @@ router.post("/:id/reviews", protect, async (req, res) => {
 
     try {
         const item = await Item.findById(req.params.id);
-        if (!item) return res.status(404).json({ message: "Item not found" });
+        if (!item) {
+            return res.status(404).json({ message: "Item not found" });
+        }
 
-        // check if
+        // check if already reviewed
+        const alreadyReviewed = item.reviews.find(
+            (r) => r.user.toString() === req.user._id.toString()
+        );
+        if (alreadyReviewed) {
+            return res.status(400).json({ message: "Item already reviewed" });
+        }
+
+        // add review
+        const review = {
+            user: req.user._id,
+            name: req.user.name,   // ✅ required in schema
+            rating: Number(rating),
+            comment,
+        };
+        item.reviews.push(review);
+
+        // update numReviews & average rating
+        item.numReviews = item.reviews.length;
+        item.rating =
+            item.reviews.reduce((acc, r) => acc + r.rating, 0) / item.reviews.length;
+
+        await item.save();
+
+        res.status(201).json({ message: "Review added" });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ message: "Server error" });
     }
-})
-
+});
 
 export default router;
