@@ -131,4 +131,62 @@ router.post(
     }
 );
 
+// Delete item
+router.delete("/:id", protect, async (req, res) => {
+    try {
+        const item = await Item.findById(req.params.id);
+        if (!item) {
+            return res.status(404).json({ message: "Item not found" });
+        }
+
+        await item.deleteOne();
+        res.json({ message: "Item deleted successfully" });
+    } catch (err) {
+        console.error("Error deleting item:", err.message);
+        res.status(500).json({ message: "Server error deleting item" });
+    }
+});
+
+// Update item (with optional images)
+router.put("/:id", upload.fields([{ name: "coverImage" }, { name: "images" }]), async (req, res) => {
+    try {
+        const { title, description, category, price, deletedImages, deleteCover } = req.body;
+        const item = await Item.findById(req.params.id);
+
+        item.title = title;
+        item.description = description;
+        item.category = category;
+        item.price = price;
+
+        // Delete cover if requested
+        if (deleteCover === "true") {
+            if (item.coverImage) fs.unlinkSync(path.join("uploads", item.coverImage));
+            item.coverImage = "";
+        }
+
+        // New cover image
+        if (req.files.coverImage) {
+            item.coverImage = req.files.coverImage[0].path;
+        }
+
+        // Delete selected gallery images
+        if (deletedImages) {
+            const toDelete = JSON.parse(deletedImages);
+            item.images = item.images.filter(img => !toDelete.includes(img));
+            toDelete.forEach(img => fs.unlinkSync(path.join("uploads", img)));
+        }
+
+        // Add new images
+        if (req.files.images) {
+            req.files.images.forEach(file => item.images.push(file.path));
+        }
+
+        await item.save();
+        res.json({ message: "Item updated", item });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+
 export default router;
