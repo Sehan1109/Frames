@@ -12,8 +12,22 @@ interface Item {
   coverImage?: string;
 }
 
+interface Review {
+  _id: string;
+  user: { _id: string; name: string };
+  rating: number;
+  comment: string;
+  createdAt: string;
+  itemId: string;
+  itemTitle: string;
+  coverImage?: string;
+}
+
 const Home = () => {
   const [latestItems, setLatestItems] = useState<Item[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [showAllReviews, setShowAllReviews] = useState(false);
+  const [topRatedItems, setTopRatedItems] = useState<Item[]>([]);
 
   useEffect(() => {
     const fetchLatest = async () => {
@@ -24,7 +38,32 @@ const Home = () => {
         console.error("Error fetching latest items:", err);
       }
     };
+
+    const fetchReviews = async () => {
+      try {
+        const res = await axios.get(
+          "http://localhost:5000/api/items/reviews/all"
+        );
+        setReviews(res.data);
+      } catch (err) {
+        console.error("Error fetching reviews:", err);
+      }
+    };
+
+    const fetchTopRated = async () => {
+      try {
+        const res = await axios.get(
+          "http://localhost:5000/api/items/top/rated"
+        );
+        setTopRatedItems(res.data);
+      } catch (err) {
+        console.error("Error fetching top rated items:", err);
+      }
+    };
+
     fetchLatest();
+    fetchReviews();
+    fetchTopRated();
   }, []);
 
   return (
@@ -104,6 +143,99 @@ const Home = () => {
             More →
           </Link>
         </div>
+      </section>
+
+      {/* Top Rated Section */}
+      <section id="top-rated" className="bg-black py-12">
+        <h2 className="text-center text-2xl font-semibold mb-8 text-white">
+          Top Rated
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+          {topRatedItems.map((item) => (
+            <Link
+              key={item._id}
+              to={`/item/${item._id}`}
+              className="flex flex-col items-center bg-white rounded-2xl shadow-md overflow-hidden hover:scale-105 transition-transform"
+            >
+              {item.coverImage && (
+                <img
+                  src={`http://localhost:5000/${item.coverImage}`}
+                  alt={item.title}
+                  className="w-full h-56 object-cover"
+                />
+              )}
+              <p className="py-2 text-black font-medium">{item.title}</p>
+              <p className="px-4 text-center text-sm text-gray-500 flex-grow">
+                {item.description}
+              </p>
+              <p className="text-gray-600">${item.price.toFixed(2)}</p>
+            </Link>
+          ))}
+        </div>
+        <div className="flex justify-center mt-6">
+          <Link
+            to="/top-rated"
+            className="px-6 py-2 bg-white text-black rounded-lg hover:bg-gray-200 transition"
+          >
+            More →
+          </Link>
+        </div>
+      </section>
+
+      {/* Reviews Section */}
+      <section id="reviews" className="py-12 text-black">
+        <h2 className="text-center text-2xl font-semibold mb-8">
+          What Our Customers Say
+        </h2>
+
+        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {(showAllReviews ? reviews : reviews.slice(0, 3)).map((review) => (
+            <div
+              key={review._id}
+              className="border rounded-xl p-4 shadow hover:shadow-md transition bg-gray-50"
+            >
+              {/* Item Info */}
+              <div className="flex items-center mb-3">
+                {review.coverImage && (
+                  <img
+                    src={`http://localhost:5000/${review.coverImage}`}
+                    alt={review.itemTitle}
+                    className="w-12 h-12 rounded object-cover mr-3"
+                  />
+                )}
+                <div>
+                  <h3 className="font-semibold text-sm">{review.itemTitle}</h3>
+                  <p className="text-xs text-gray-500">
+                    {new Date(review.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+
+              {/* User & Rating */}
+              <div className="flex items-center mb-2">
+                <span className="font-bold">{review.user.name}</span>
+                <span className="ml-2 text-yellow-500">
+                  {"★".repeat(review.rating)}
+                  {"☆".repeat(5 - review.rating)}
+                </span>
+              </div>
+
+              {/* Comment */}
+              <p className="text-gray-700 text-sm">{review.comment}</p>
+            </div>
+          ))}
+        </div>
+
+        {reviews.length > 3 && (
+          <div className="flex justify-center mt-6">
+            <button
+              onClick={() => setShowAllReviews(!showAllReviews)}
+              className="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition"
+            >
+              {showAllReviews ? "Show Less" : "Show More"}
+            </button>
+          </div>
+        )}
       </section>
 
       {/* About Us */}

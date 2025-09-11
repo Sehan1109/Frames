@@ -131,6 +131,25 @@ router.post(
     }
 );
 
+// Get all reviews across all items
+router.get("/reviews/all", async (req, res) => {
+    try {
+        const items = await Item.find().select("reviews title coverImage");
+        const reviews = items.flatMap((item) =>
+            item.reviews.map((r) => ({
+                ...r.toObject(),
+                itemId: item._id,
+                itemTitle: item.title,
+                itemCoverImage: item.coverImage,
+            }))
+        );
+        res.json(reviews);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+
 // Delete item
 router.delete("/:id", protect, async (req, res) => {
     try {
@@ -188,5 +207,23 @@ router.put("/:id", upload.fields([{ name: "coverImage" }, { name: "images" }]), 
     }
 });
 
+router.get("/top/rated", async (req, res) => {
+    try {
+        const topRated = await Item.find().sort({ rating: -1 }).limit(4);
+        res.json(topRated);
+    } catch (err) {
+        console.error("Error fetching top rated items:", err.message);
+        res.status(500).json({ message: "Server error fetching top rated items" });
+    }
+});
+
+router.get("/top/rated/all", async (req, res) => {
+    try {
+        const items = await Item.find().sort({ averageRating: -1 }).exec();
+        res.json(items);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
 
 export default router;
