@@ -111,7 +111,7 @@ const Home = () => {
       </section>
 
       {/* New Ones */}
-      <section id="top-picks" className="py-12">
+      <section id="new-ones" className="py-12">
         <h2 className="text-center text-2xl font-semibold mb-8">New Ones</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
           {latestItems.map((item) => (

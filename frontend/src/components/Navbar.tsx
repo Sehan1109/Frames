@@ -8,7 +8,8 @@ import { useNavigate } from "react-router-dom";
 const Navbar = () => {
   const [showAuth, setShowAuth] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
-  const [showCart, setShowCart] = useState(false); // New state for cart dropdown
+  const [showCart, setShowCart] = useState(false);
+  const [showCategories, setShowCategories] = useState(false);
 
   const { cart } = useCart();
   const navigate = useNavigate();
@@ -29,6 +30,13 @@ const Navbar = () => {
     navigate("/cart"); // redirect to a Cart/Checkout page
   };
 
+  const handleScroll = (id: string) => {
+    const section = document.getElementById(id);
+    if (section) {
+      section.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <div>
       <header className="flex justify-between items-center px-8 py-4 bg-black text-white">
@@ -39,15 +47,36 @@ const Navbar = () => {
           FujoFrame
         </h1>
         <nav className="space-x-6">
-          <a href="#" className="hover:underline">
+          <button
+            onClick={() => handleScroll("categories")}
+            className="hover:underline relative"
+          >
             Categories
-          </a>
-          <a href="#" className="hover:underline">
-            Top Picks
-          </a>
-          <a href="#" className="hover:underline">
+          </button>
+          <button
+            onClick={() => handleScroll("new-ones")}
+            className="hover:underline"
+          >
+            New Ones
+          </button>
+          <button
+            onClick={() => handleScroll("top-rated")}
+            className="hover:underline"
+          >
+            Top Rated
+          </button>
+          <button
+            onClick={() => handleScroll("reviews")}
+            className="hover:underline"
+          >
+            Reviews
+          </button>
+          <button
+            onClick={() => handleScroll("about")}
+            className="hover:underline"
+          >
             About us
-          </a>
+          </button>
         </nav>
 
         <div className="flex items-center space-x-4 relative">
