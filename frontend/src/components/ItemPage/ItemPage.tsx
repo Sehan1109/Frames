@@ -7,6 +7,7 @@ import Footer from "../Footer";
 import StarRating from "../StarRating/StarRating";
 import ReviewModal from "../ReviewModal/ReviewModal";
 import { Globe, CheckCircle, Gift, Lock } from "lucide-react";
+import { useCart } from "../Context/CartContext";
 
 interface Item {
   _id: string;
@@ -33,6 +34,8 @@ export default function ItemPage() {
   const [item, setItem] = useState<Item | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { addToCart } = useCart();
+  const { cart } = useCart();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -83,6 +86,41 @@ export default function ItemPage() {
     }
   };
 
+  const handleCheckout = async () => {
+    try {
+      const cartData = [
+        {
+          _id: item!._id,
+          title: item!.title,
+          price: item!.price,
+          quantity: 1,
+        },
+      ];
+
+      const res = await axios.post(
+        "http://localhost:5000/api/payments/create-checkout-session",
+        { cart: cartData },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      const sessionId = res.data.id;
+
+      //Load Stripe.js
+      const stripe = (window as any).Stripe(
+        "pk_test_51S6AMCL1PGDmrKPOGfpa6MW1j1HKokaA3owih5FP86hjJccLO4DzsAQj28AntnceMFHKdf0AytAypOcsdHfArSmc00inzpoIvV"
+      );
+
+      await stripe.redirectToCheckout({ sessionId });
+    } catch (err: any) {
+      console.error(err);
+      alert(err.response?.data?.message || "Checkout failed");
+    }
+  };
+
   if (!item) return <p>Loading...</p>;
 
   return (
@@ -106,13 +144,13 @@ export default function ItemPage() {
             {/* Right: Details */}
             <div className="px-8">
               <h2 className="text-3xl font-bold mb-4">{item.title}</h2>
-              <p
+              <div
                 className="font-bold flex items-center cursor-pointer mb-4"
                 onClick={() => setIsModalOpen(true)} // ⭐ click stars -> open modal
               >
                 <StarRating value={item.rating || 0} size={28} readOnly />
                 <span className="ml-2">({item.numReviews} reviews)</span>
-              </p>
+              </div>
               <p className="text-2xl font-semibold mb-2">${item.price} USD</p>
 
               <div className="mb-4 py-5 text-gray-800">
@@ -133,7 +171,24 @@ export default function ItemPage() {
                   <span>Secure Payments</span>
                 </div>
               </div>
-              <button className="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800">
+              <button
+                className="mr-4 bg-gray-200 px-6 py-3 rounded-lg hover:bg-gray-300"
+                onClick={() =>
+                  addToCart({
+                    _id: item._id,
+                    title: item.title,
+                    price: item.price,
+                    coverImage: item.coverImage,
+                    quantity: 1,
+                  })
+                }
+              >
+                Add to Cart
+              </button>
+              <button
+                className="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800"
+                onClick={handleCheckout}
+              >
                 Buy
               </button>
             </div>
