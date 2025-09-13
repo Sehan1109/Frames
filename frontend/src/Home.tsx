@@ -71,7 +71,7 @@ const Home = () => {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="flex flex-col items-center py-12">
+      <section className="flex flex-col items-center py-20">
         <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-8">
           <img
             src="../src/assets/image7.png"
@@ -85,7 +85,7 @@ const Home = () => {
       </section>
 
       {/* Categories */}
-      <section id="categories" className="bg-black text-white py-12">
+      <section id="categories" className="bg-black text-white py-20">
         <h2 className="text-center text-2xl font-semibold mb-8">Categories</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
           {[
@@ -111,7 +111,7 @@ const Home = () => {
       </section>
 
       {/* New Ones */}
-      <section id="new-ones" className="py-12">
+      <section id="new-ones" className="py-12 bg-gray-100">
         <h2 className="text-center text-2xl font-semibold mb-8">New Ones</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
           {latestItems.map((item) => (
@@ -183,7 +183,7 @@ const Home = () => {
       </section>
 
       {/* Reviews Section */}
-      <section id="reviews" className="py-12 text-black">
+      <section id="reviews" className="py-20 text-black bg-gray-100">
         <h2 className="text-center text-2xl font-semibold mb-8">
           What Our Customers Say
         </h2>
@@ -239,7 +239,7 @@ const Home = () => {
       </section>
 
       {/* About Us */}
-      <section id="about" className="bg-black text-white py-12 px-8 md:px-20">
+      <section id="about" className="bg-black text-white py-20 px-8 md:px-20">
         <h2 className="text-center text-2xl font-semibold mb-6">About us</h2>
         <p className="max-w-4xl mx-auto text-center leading-relaxed text-gray-300">
           “For me, there is something indulgent about old technology. The

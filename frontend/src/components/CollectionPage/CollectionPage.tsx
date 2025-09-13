@@ -21,7 +21,9 @@ export default function CategoryPage() {
 
   useEffect(() => {
     const fetchItems = async () => {
-      const res = await axios.get(`http://localhost:5000/api/items/category/${category}`);
+      const res = await axios.get(
+        `http://localhost:5000/api/items/category/${category}`
+      );
       setItems(res.data);
     };
     fetchItems();
@@ -30,24 +32,33 @@ export default function CategoryPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      <main className="flex-1 py-12 bg-gray-100 text-black">
-        <h2 className="text-center text-2xl font-bold mb-8">{category} Collection</h2>
+      <main className="flex-1 py-12 bg-gray-200 text-black">
+        <h2 className="text-center text-2xl font-bold mb-8">
+          {category} Collection
+        </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {items.map((item) => (
-            <Link to={`/item/${item._id}`} key={item._id} className="no-underline text-black">
-            <div key={item._id} className="bg-white rounded-lg shadow-md p-4 text-center">
-              {/* ✅ Display image if available */}
-              {item.coverImage && (
-                <img
-                  src={`http://localhost:5000/${item.coverImage}`}
-                  alt={item.title}
-                  className="w-full h-48 object-cover rounded-md mb-4"
-                />
-              )}
-              <h3 className="font-semibold">{item.title}</h3>
-              <p className="text-gray-500">{item.description}</p>
-              <p className="text-lg font-bold mt-2">${item.price}</p>
-            </div>
+            <Link
+              to={`/item/${item._id}`}
+              key={item._id}
+              className="no-underline text-black"
+            >
+              <div
+                key={item._id}
+                className="bg-white rounded-lg shadow-md p-4 text-center"
+              >
+                {/* ✅ Display image if available */}
+                {item.coverImage && (
+                  <img
+                    src={`http://localhost:5000/${item.coverImage}`}
+                    alt={item.title}
+                    className="w-full h-48 object-cover rounded-md mb-4"
+                  />
+                )}
+                <h3 className="font-semibold">{item.title}</h3>
+                <p className="text-gray-500">{item.description}</p>
+                <p className="text-lg font-bold mt-2">${item.price}</p>
+              </div>
             </Link>
           ))}
         </div>
