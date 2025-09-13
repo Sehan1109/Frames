@@ -9,7 +9,6 @@ const Navbar = () => {
   const [showAuth, setShowAuth] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [showCart, setShowCart] = useState(false);
-  const [showCategories, setShowCategories] = useState(false);
 
   const { cart } = useCart();
   const navigate = useNavigate();
@@ -39,14 +38,14 @@ const Navbar = () => {
 
   return (
     <div>
-      <header className="flex justify-between items-center px-8 py-4 bg-black text-white">
+      <header className="flex justify-between items-center px-8 py-7 bg-black text-white">
         <h1
           className="text-xl font-bold cursor-pointer"
           onClick={() => navigate("/")}
         >
           FujoFrame
         </h1>
-        <nav className="space-x-6">
+        <nav className="space-x-10">
           <button
             onClick={() => handleScroll("categories")}
             className="hover:underline relative"
@@ -132,7 +131,7 @@ const Navbar = () => {
       {/* Auth Modal */}
       {showAuth && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96 relative">
+          <div className="bg-white p-6 rounded-2xl shadow-lg w-96 relative">
             <button
               className="absolute top-2 right-2 text-gray-600 hover:text-black"
               onClick={handleClose}

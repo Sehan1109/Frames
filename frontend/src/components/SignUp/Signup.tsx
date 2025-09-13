@@ -15,12 +15,21 @@ const SignUp = () => {
     setLoading(true);
 
     try {
+      const formData = new FormData();
+      formData.append("name", form.name);
+      formData.append("email", form.email);
+      formData.append("password", form.password);
+
       const res = await axios.post(
         "http://localhost:5000/api/auth/signup",
-        form
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
       );
+
       setMessage(res.data.msg || "Signup successful!");
-      setForm({ name: "", email: "", password: "" }); // Reset form
+      setForm({ name: "", email: "", password: "" });
     } catch (err: any) {
       setMessage(err.response?.data?.msg || "Error signing up");
     } finally {
@@ -29,10 +38,10 @@ const SignUp = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-black">
-      <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg">
+    <div className="flex items-center justify-center">
+      <div className=" bg-white p-8 rounded-2xl drop-shadow-2xl">
         <h2 className="text-3xl font-bold text-center mb-6 text-black">
-          Create Account
+          Sign Up
         </h2>
         <form onSubmit={handleSubmit} className="space-y-5">
           <input
@@ -42,7 +51,7 @@ const SignUp = () => {
             value={form.name}
             onChange={handleChange}
             required
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black"
+            className="w-full px-4 py-3 rounded-lg border-none focus:outline-none focus:ring-2 focus:ring-black"
           />
           <input
             type="email"
@@ -51,7 +60,7 @@ const SignUp = () => {
             value={form.email}
             onChange={handleChange}
             required
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black"
+            className="w-full px-4 py-3 rounded-lg border-none focus:outline-none focus:ring-2 focus:ring-black"
           />
           <input
             type="password"
@@ -60,12 +69,13 @@ const SignUp = () => {
             value={form.password}
             onChange={handleChange}
             required
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black"
+            className="w-full px-4 py-3 rounded-lg border-none focus:outline-none focus:ring-2 focus:ring-black"
           />
+
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-black text-white rounded-lg font-semibold hover:bg-gray-800 transition-colors duration-200 disabled:opacity-50"
+            className="w-full py-3 bg-black text-white rounded-full font-semibold hover:bg-gray-800 transition-colors duration-200 disabled:opacity-50"
           >
             {loading ? "Signing up..." : "Sign Up"}
           </button>
@@ -73,12 +83,6 @@ const SignUp = () => {
         {message && (
           <p className="text-center text-sm mt-4 text-gray-700">{message}</p>
         )}
-        <p className="text-center text-gray-600 mt-6">
-          Already have an account?{" "}
-          <span className="text-black font-semibold cursor-pointer hover:underline">
-            Login
-          </span>
-        </p>
       </div>
     </div>
   );
