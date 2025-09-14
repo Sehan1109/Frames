@@ -5,6 +5,8 @@ import { Link } from "react-router-dom";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
 
+const API_BASE = import.meta.env.VITE_API_BASE;
+
 interface Item {
   _id: string;
   title: string;
@@ -19,7 +21,7 @@ export default function NewItemsPage() {
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/items/all");
+        const res = await axios.get(`${API_BASE}/items/all`);
         setItems(res.data);
       } catch (err) {
         console.error("Error fetching all items:", err);
@@ -32,7 +34,9 @@ export default function NewItemsPage() {
     <div className="flex flex-col min-h-screen bg-gray-100">
       <Navbar />
       <main className="flex-1 py-12">
-        <h2 className="text-black text-center text-2xl font-bold mb-8">All Items</h2>
+        <h2 className="text-black text-center text-2xl font-bold mb-8">
+          All Items
+        </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {items.map((item) => (
             <Link
@@ -42,7 +46,7 @@ export default function NewItemsPage() {
             >
               {item.coverImage && (
                 <img
-                  src={`http://localhost:5000/${item.coverImage}`}
+                  src={`${API_BASE}/${item.coverImage}`}
                   alt={item.title}
                   className="w-full h-48 object-cover rounded-md mb-4"
                 />

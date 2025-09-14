@@ -10,6 +10,8 @@ import { Globe, CheckCircle, Gift, Lock } from "lucide-react";
 import { useCart } from "../Context/CartContext";
 import { loadStripe } from "@stripe/stripe-js";
 
+const API_BASE = import.meta.env.VITE_API_BASE;
+
 interface Item {
   _id: string;
   title: string;
@@ -39,12 +41,10 @@ export default function ItemPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const resItem = await axios.get(`http://localhost:5000/api/items/${id}`);
+      const resItem = await axios.get(`${API_BASE}/items/${id}`);
       setItem(resItem.data);
 
-      const resReviews = await axios.get(
-        `http://localhost:5000/api/items/${id}/reviews`
-      );
+      const resReviews = await axios.get(`${API_BASE}/items/${id}/reviews`);
       setReviews(resReviews.data);
     };
     fetchData();
@@ -66,7 +66,7 @@ export default function ItemPage() {
       });
 
       await axios.post(
-        `http://localhost:5000/api/items/${id}/reviews`,
+        `${API_BASE}/items/${id}/reviews`,
         formData, // ✅ send FormData
         {
           headers: {
@@ -77,9 +77,7 @@ export default function ItemPage() {
       );
 
       // refresh reviews after submit
-      const res = await axios.get(
-        `http://localhost:5000/api/items/${id}/reviews`
-      );
+      const res = await axios.get(`${API_BASE}/items/${id}/reviews`);
       setReviews(res.data);
     } catch (err: any) {
       alert(err.response?.data?.message || "Error submitting review");
@@ -98,7 +96,7 @@ export default function ItemPage() {
       ];
 
       const res = await axios.post(
-        "http://localhost:5000/api/payments/create-checkout-session",
+        `${API_BASE}/payments/create-checkout-session`,
         { cart: cartData },
         {
           headers: {
@@ -138,7 +136,7 @@ export default function ItemPage() {
             <div>
               {item.coverImage && (
                 <img
-                  src={`http://localhost:5000/${item.coverImage}`}
+                  src={`${API_BASE}/${item.coverImage}`}
                   alt={item.title}
                   className="w-96 h-96 object-cover rounded-lg shadow mb-4"
                 />
@@ -207,7 +205,7 @@ export default function ItemPage() {
                 {item.images.map((img, idx) => (
                   <img
                     key={idx}
-                    src={`http://localhost:5000/${img}`}
+                    src={`${API_BASE}/${img}`}
                     alt={`extra-${idx}`}
                     className="w-full h-56 object-cover rounded-lg shadow"
                   />

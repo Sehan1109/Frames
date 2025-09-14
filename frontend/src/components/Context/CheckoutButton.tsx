@@ -3,6 +3,7 @@ import { loadStripe } from "@stripe/stripe-js";
 
 // Load Stripe with your publishable key
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+const API_BASE = import.meta.env.VITE_API_BASE;
 
 const CheckoutButton = ({ cart }: { cart: any[] }) => {
   const handleCheckout = async () => {
@@ -16,7 +17,7 @@ const CheckoutButton = ({ cart }: { cart: any[] }) => {
 
       // Call backend to create checkout session
       const res = await axios.post(
-        "http://localhost:5000/api/payments/create-checkout-session",
+        `${API_BASE}/payments/create-checkout-session`,
         { cart: cartData },
         {
           headers: {

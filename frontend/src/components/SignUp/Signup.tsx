@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 
+const API_BASE = import.meta.env.VITE_API_BASE;
+
 const SignUp = () => {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [message, setMessage] = useState("");
@@ -20,13 +22,9 @@ const SignUp = () => {
       formData.append("email", form.email);
       formData.append("password", form.password);
 
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/signup",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      const res = await axios.post(`${API_BASE}/auth/signup`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       setMessage(res.data.msg || "Signup successful!");
       setForm({ name: "", email: "", password: "" });

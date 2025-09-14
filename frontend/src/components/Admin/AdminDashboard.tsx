@@ -8,6 +8,8 @@ import {
   FaSearch,
 } from "react-icons/fa";
 
+const API_BASE = import.meta.env.VITE_API_BASE;
+
 interface Item {
   _id: string;
   title: string;
@@ -30,7 +32,7 @@ export default function AdminDashboard() {
 
   // ✅ Fetch items
   const fetchItems = async () => {
-    const res = await fetch("http://localhost:5000/api/items/all");
+    const res = await fetch(`${API_BASE}/items/all`);
     const data = await res.json();
     setItems(data);
   };
@@ -60,13 +62,13 @@ export default function AdminDashboard() {
     const body = { title, category, description, price };
 
     if (editingItem) {
-      await fetch(`http://localhost:5000/api/items/${editingItem._id}`, {
+      await fetch(`${API_BASE}/items/${editingItem._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
     } else {
-      await fetch("http://localhost:5000/api/items", {
+      await fetch(`${API_BASE}/items`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -80,7 +82,7 @@ export default function AdminDashboard() {
   const handleDelete = async (id: string) => {
     if (!window.confirm("Delete this item?")) return;
 
-    await fetch(`http://localhost:5000/api/items/${id}`, { method: "DELETE" });
+    await fetch(`${API_BASE}/items/${id}`, { method: "DELETE" });
     fetchItems();
   };
 

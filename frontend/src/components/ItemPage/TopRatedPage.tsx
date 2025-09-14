@@ -3,6 +3,8 @@ import Navbar from "../Navbar";
 import { Link } from "react-router-dom";
 import Footer from "../Footer";
 
+const API_BASE = import.meta.env.VITE_API_BASE;
+
 interface Item {
   _id: string;
   title: string;
@@ -17,9 +19,7 @@ const TopRatedPage = () => {
   useEffect(() => {
     const fetchTopRatedItems = async () => {
       try {
-        const response = await fetch(
-          "http://localhost:5000/api/items/top/rated/all"
-        );
+        const response = await fetch(`${API_BASE}/items/top/rated/all`);
         const data = await response.json();
         setItems(data);
       } catch (error) {
@@ -46,7 +46,7 @@ const TopRatedPage = () => {
             >
               {item.coverImage && (
                 <img
-                  src={`http://localhost:5000/${item.coverImage}`}
+                  src={`${API_BASE}/${item.coverImage}`}
                   alt={item.title}
                   className="w-full h-56 object-cover"
                 />

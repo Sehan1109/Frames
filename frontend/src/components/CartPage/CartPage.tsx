@@ -5,6 +5,8 @@ import { Trash2 } from "lucide-react";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
 
+const API_BASE = import.meta.env.VITE_API_BASE;
+
 const CartPage = () => {
   const { cart, removeFromCart, updateQuantity } = useCart();
   const [quantities, setQuantities] = useState(
@@ -50,7 +52,7 @@ const CartPage = () => {
                 <div className="flex items-center gap-4">
                   {item.coverImage && (
                     <img
-                      src={`http://localhost:5000/${item.coverImage}`}
+                      src={`${API_BASE}/${item.coverImage}`}
                       alt={item.title}
                       className="w-20 h-20 object-cover rounded-lg"
                     />

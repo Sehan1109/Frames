@@ -4,6 +4,8 @@ import Footer from "./components/Footer";
 import { Link } from "react-router-dom";
 import axios from "axios";
 
+const API_BASE = import.meta.env.VITE_API_BASE;
+
 interface Item {
   _id: string;
   title: string;
@@ -32,7 +34,7 @@ const Home = () => {
   useEffect(() => {
     const fetchLatest = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/items/latest");
+        const res = await axios.get(`${API_BASE}/items/latest`);
         setLatestItems(res.data);
       } catch (err) {
         console.error("Error fetching latest items:", err);
@@ -41,9 +43,7 @@ const Home = () => {
 
     const fetchReviews = async () => {
       try {
-        const res = await axios.get(
-          "http://localhost:5000/api/items/reviews/all"
-        );
+        const res = await axios.get(`${API_BASE}/items/reviews/all`);
         setReviews(res.data);
       } catch (err) {
         console.error("Error fetching reviews:", err);
@@ -52,9 +52,7 @@ const Home = () => {
 
     const fetchTopRated = async () => {
       try {
-        const res = await axios.get(
-          "http://localhost:5000/api/items/top/rated"
-        );
+        const res = await axios.get(`${API_BASE}/items/top/rated`);
         setTopRatedItems(res.data);
       } catch (err) {
         console.error("Error fetching top rated items:", err);
@@ -122,7 +120,7 @@ const Home = () => {
             >
               {item.coverImage && (
                 <img
-                  src={`http://localhost:5000/${item.coverImage}`}
+                  src={`${API_BASE.replace("/api", "")}/${item.coverImage}`}
                   alt={item.title}
                   className="w-full h-56 object-cover"
                 />
@@ -159,7 +157,7 @@ const Home = () => {
             >
               {item.coverImage && (
                 <img
-                  src={`http://localhost:5000/${item.coverImage}`}
+                  src={`${API_BASE.replace("/api", "")}/${item.coverImage}`}
                   alt={item.title}
                   className="w-full h-56 object-cover"
                 />
@@ -198,7 +196,7 @@ const Home = () => {
               <div className="flex items-center mb-3">
                 {review.coverImage && (
                   <img
-                    src={`http://localhost:5000/${review.coverImage}`}
+                    src={`${API_BASE.replace("/api", "")}/${review.coverImage}`}
                     alt={review.itemTitle}
                     className="w-12 h-12 rounded object-cover mr-3"
                   />

@@ -6,6 +6,8 @@ import Navbar from "../Navbar";
 import Footer from "../Footer";
 import { Link } from "react-router-dom";
 
+const API_BASE = import.meta.env.VITE_API_BASE;
+
 interface Item {
   _id: string;
   title: string;
@@ -21,9 +23,7 @@ export default function CategoryPage() {
 
   useEffect(() => {
     const fetchItems = async () => {
-      const res = await axios.get(
-        `http://localhost:5000/api/items/category/${category}`
-      );
+      const res = await axios.get(`${API_BASE}/items/category/${category}`);
       setItems(res.data);
     };
     fetchItems();
@@ -50,7 +50,7 @@ export default function CategoryPage() {
                 {/* ✅ Display image if available */}
                 {item.coverImage && (
                   <img
-                    src={`http://localhost:5000/${item.coverImage}`}
+                    src={`${API_BASE}/${item.coverImage}`}
                     alt={item.title}
                     className="w-full h-48 object-cover rounded-md mb-4"
                   />
