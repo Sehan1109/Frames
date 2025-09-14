@@ -27,7 +27,7 @@ app.use("/api/payments", paymentRoutes);
 
 // Health check route (helps debugging)
 app.get("/", (req, res) => {
-    res.send("Backend running on Railway 🚀");
+    res.send("Backend running on Render 🚀");
 });
 
 // Start server
