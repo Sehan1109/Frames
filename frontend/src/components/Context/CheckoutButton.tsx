@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from "axios";
+import axios from "axios";
 import { loadStripe } from "@stripe/stripe-js";
 
 const stripePromise = loadStripe(
@@ -17,6 +17,13 @@ interface CheckoutSessionResponse {
   id: string;
 }
 
+// ✅ Custom type guard without importing AxiosError
+function isAxiosError(
+  error: unknown
+): error is { isAxiosError: boolean; response?: any } {
+  return typeof error === "object" && error !== null && "isAxiosError" in error;
+}
+
 const CheckoutButton = ({ cart }: { cart: CartItem[] }) => {
   const handleCheckout = async () => {
     try {
@@ -27,8 +34,7 @@ const CheckoutButton = ({ cart }: { cart: CartItem[] }) => {
         quantity: item.quantity || 1,
       }));
 
-      // ✅ Explicitly type Axios response
-      const res: AxiosResponse<CheckoutSessionResponse> = await axios.post(
+      const res = await axios.post<CheckoutSessionResponse>(
         `${API_BASE}/payments/create-checkout-session`,
         { cart: cartData },
         {
@@ -41,14 +47,11 @@ const CheckoutButton = ({ cart }: { cart: CartItem[] }) => {
       const stripe = await stripePromise;
       if (!stripe) throw new Error("Stripe failed to load");
 
-      // ✅ Use typed response
       await stripe.redirectToCheckout({ sessionId: res.data.id });
     } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
+      if (isAxiosError(err)) {
         console.error(err.response?.data);
-        alert(
-          (err.response?.data as { error?: string })?.error || "Checkout failed"
-        );
+        alert(err.response?.data?.error || "Checkout failed");
       } else {
         console.error(err);
         alert("Unexpected error occurred");

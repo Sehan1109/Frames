@@ -10,7 +10,7 @@ import { Globe, CheckCircle, Gift, Lock } from "lucide-react";
 import { useCart } from "../Context/CartContext";
 import { loadStripe } from "@stripe/stripe-js";
 
-const API_BASE = import.meta.env.VITE_API_BASE;
+const API_BASE = import.meta.env.VITE_API_BASE as string;
 
 interface Item {
   _id: string;
@@ -32,6 +32,13 @@ interface Review {
   createdAt: string;
 }
 
+// ✅ Custom type guard (replaces axios.isAxiosError)
+function isAxiosError(
+  error: unknown
+): error is { isAxiosError: boolean; response?: any } {
+  return typeof error === "object" && error !== null && "isAxiosError" in error;
+}
+
 export default function ItemPage() {
   const { id } = useParams<{ id: string }>();
   const [item, setItem] = useState<Item | null>(null);
@@ -41,11 +48,21 @@ export default function ItemPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const resItem = await axios.get(`${API_BASE}/items/${id}`);
-      setItem(resItem.data);
+      try {
+        const resItem = await axios.get<Item>(`${API_BASE}/items/${id}`);
+        setItem(resItem.data);
 
-      const resReviews = await axios.get(`${API_BASE}/items/${id}/reviews`);
-      setReviews(resReviews.data);
+        const resReviews = await axios.get<Review[]>(
+          `${API_BASE}/items/${id}/reviews`
+        );
+        setReviews(resReviews.data);
+      } catch (err: unknown) {
+        if (isAxiosError(err)) {
+          console.error(err.response?.data);
+        } else {
+          console.error(err);
+        }
+      }
     };
     fetchData();
   }, [id]);
@@ -60,42 +77,42 @@ export default function ItemPage() {
       formData.append("rating", String(rating));
       formData.append("comment", comment);
 
-      // ✅ match field name with backend ("reviewImages")
       images.forEach((img) => {
         formData.append("reviewImages", img);
       });
 
-      await axios.post(
-        `${API_BASE}/items/${id}/reviews`,
-        formData, // ✅ send FormData
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      await axios.post(`${API_BASE}/items/${id}/reviews`, formData, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
-      // refresh reviews after submit
-      const res = await axios.get(`${API_BASE}/items/${id}/reviews`);
+      const res = await axios.get<Review[]>(`${API_BASE}/items/${id}/reviews`);
       setReviews(res.data);
-    } catch (err: any) {
-      alert(err.response?.data?.message || "Error submitting review");
+    } catch (err: unknown) {
+      if (isAxiosError(err)) {
+        alert(err.response?.data?.message || "Error submitting review");
+      } else {
+        alert("Unexpected error submitting review");
+      }
     }
   };
 
   const handleCheckout = async () => {
     try {
+      if (!item) return;
+
       const cartData = [
         {
-          _id: item!._id,
-          title: item!.title,
-          price: item!.price,
+          _id: item._id,
+          title: item.title,
+          price: item.price,
           quantity: 1,
         },
       ];
 
-      const res = await axios.post(
+      const res = await axios.post<{ id: string }>(
         `${API_BASE}/payments/create-checkout-session`,
         { cart: cartData },
         {
@@ -105,21 +122,23 @@ export default function ItemPage() {
         }
       );
 
-      const sessionId = res.data.id;
-
-      //Load Stripe.js
       const stripe = await loadStripe(
-        import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY!
+        import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string
       );
 
       if (stripe) {
-        await stripe.redirectToCheckout({ sessionId });
+        await stripe.redirectToCheckout({ sessionId: res.data.id });
       } else {
         alert("Stripe failed to load. Please try again later.");
       }
-    } catch (err: any) {
-      console.error(err);
-      alert(err.response?.data?.message || "Checkout failed");
+    } catch (err: unknown) {
+      if (isAxiosError(err)) {
+        console.error(err.response?.data);
+        alert(err.response?.data?.message || "Checkout failed");
+      } else {
+        console.error(err);
+        alert("Unexpected checkout error");
+      }
     }
   };
 
@@ -148,7 +167,7 @@ export default function ItemPage() {
               <h2 className="text-3xl font-bold mb-4">{item.title}</h2>
               <div
                 className="font-bold flex items-center cursor-pointer mb-4"
-                onClick={() => setIsModalOpen(true)} // ⭐ click stars -> open modal
+                onClick={() => setIsModalOpen(true)}
               >
                 <StarRating value={item.rating || 0} size={28} readOnly />
                 <span className="ml-2">({item.numReviews} reviews)</span>

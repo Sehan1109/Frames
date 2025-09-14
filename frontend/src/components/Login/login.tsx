@@ -2,7 +2,14 @@ import axios from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const API_BASE = import.meta.env.VITE_API_BASE;
+const API_BASE = import.meta.env.VITE_API_BASE as string;
+
+// ✅ Custom type guard for Axios errors
+function isAxiosError(
+  error: unknown
+): error is { isAxiosError: boolean; response?: any } {
+  return typeof error === "object" && error !== null && "isAxiosError" in error;
+}
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -13,28 +20,32 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const res = await axios.post(`${API_BASE}/auth/login`, {
-        email,
-        password,
-      });
+      const res = await axios.post<{ token: string; isAdmin: boolean }>(
+        `${API_BASE}/auth/login`,
+        { email, password }
+      );
 
       // Save token in localStorage
       localStorage.setItem("token", res.data.token);
-      localStorage.setItem("isAdmin", res.data.isAdmin);
+      localStorage.setItem("isAdmin", String(res.data.isAdmin));
 
       if (res.data.isAdmin) {
         navigate("/admin");
       } else {
         navigate("/");
       }
-    } catch (err: any) {
-      alert(err.response?.data?.message || "Login failed");
+    } catch (err: unknown) {
+      if (isAxiosError(err)) {
+        alert(err.response?.data?.message || "Login failed");
+      } else {
+        alert("Unexpected error occurred");
+      }
     }
   };
 
   return (
     <div className="flex items-center justify-center">
-      <div className=" bg-white p-8 rounded-2xl drop-shadow-2xl">
+      <div className="bg-white p-8 rounded-2xl drop-shadow-2xl">
         <h2 className="text-3xl font-bold text-center mb-6 text-black">
           Login
         </h2>
