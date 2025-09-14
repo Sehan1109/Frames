@@ -87,7 +87,12 @@ const CartPage = () => {
               Total:{" "}
               <span className="text-green-600">${totalPrice.toFixed(2)}</span>
             </p>
-            <CheckoutButton cart={cart} />
+            <CheckoutButton
+              cart={cart.map((item, i) => ({
+                ...item,
+                quantity: quantities[i],
+              }))}
+            />
           </div>
         </div>
       </div>

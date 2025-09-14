@@ -8,6 +8,7 @@ import StarRating from "../StarRating/StarRating";
 import ReviewModal from "../ReviewModal/ReviewModal";
 import { Globe, CheckCircle, Gift, Lock } from "lucide-react";
 import { useCart } from "../Context/CartContext";
+import { loadStripe } from "@stripe/stripe-js";
 
 interface Item {
   _id: string;
@@ -109,11 +110,15 @@ export default function ItemPage() {
       const sessionId = res.data.id;
 
       //Load Stripe.js
-      const stripe = (window as any).Stripe(
-        "pk_test_51S6AMCL1PGDmrKPOGfpa6MW1j1HKokaA3owih5FP86hjJccLO4DzsAQj28AntnceMFHKdf0AytAypOcsdHfArSmc00inzpoIvV"
+      const stripe = await loadStripe(
+        import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY!
       );
 
-      await stripe.redirectToCheckout({ sessionId });
+      if (stripe) {
+        await stripe.redirectToCheckout({ sessionId });
+      } else {
+        alert("Stripe failed to load. Please try again later.");
+      }
     } catch (err: any) {
       console.error(err);
       alert(err.response?.data?.message || "Checkout failed");

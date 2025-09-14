@@ -1,4 +1,10 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 
 type CartItem = {
   _id: string;
@@ -13,13 +19,26 @@ type CartContextType = {
   addToCart: (item: CartItem) => void;
   removeFromCart: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
+  clearCart: () => void;
+  totalItems: number;
+  totalPrice: number;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [cart, setCart] = useState<CartItem[]>([]);
+  // Load cart from localStorage (if available)
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    const stored = localStorage.getItem("cart");
+    return stored ? JSON.parse(stored) : [];
+  });
 
+  // Save cart to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("cart", JSON.stringify(cart));
+  }, [cart]);
+
+  // Add item to cart
   const addToCart = (item: CartItem) => {
     setCart((prev) => {
       const existing = prev.find((i) => i._id === item._id);
@@ -29,14 +48,17 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           i._id === item._id ? { ...i, quantity: i.quantity + 1 } : i
         );
       }
-      return [...prev, item]; // Add new item
+      // Add new item with quantity fallback
+      return [...prev, { ...item, quantity: item.quantity || 1 }];
     });
   };
 
+  // Remove item
   const removeFromCart = (id: string) => {
     setCart((prev) => prev.filter((item) => item._id !== id));
   };
 
+  // Update quantity
   const updateQuantity = (id: string, quantity: number) => {
     if (quantity < 1) return; // prevent invalid quantity
     setCart((prev) =>
@@ -44,15 +66,34 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
+  // Clear entire cart (e.g. after checkout)
+  const clearCart = () => setCart([]);
+
+  // Derived values
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const totalPrice = cart.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
+
   return (
     <CartContext.Provider
-      value={{ cart, addToCart, removeFromCart, updateQuantity }}
+      value={{
+        cart,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        totalItems,
+        totalPrice,
+      }}
     >
       {children}
     </CartContext.Provider>
   );
 };
 
+// Hook for easy access
 export const useCart = () => {
   const context = useContext(CartContext);
   if (!context) {

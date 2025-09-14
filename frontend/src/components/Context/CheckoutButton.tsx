@@ -1,4 +1,8 @@
 import axios from "axios";
+import { loadStripe } from "@stripe/stripe-js";
+
+// Load Stripe with your publishable key
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 const CheckoutButton = ({ cart }: { cart: any[] }) => {
   const handleCheckout = async () => {
@@ -7,11 +11,10 @@ const CheckoutButton = ({ cart }: { cart: any[] }) => {
         _id: item._id,
         title: item.title,
         price: item.price,
-        quantity: 1,
+        quantity: item.quantity || 1,
       }));
-      // if you want all items in cart, use cart from CartContext
-      // const cartData = cart;
 
+      // Call backend to create checkout session
       const res = await axios.post(
         "http://localhost:5000/api/payments/create-checkout-session",
         { cart: cartData },
@@ -22,13 +25,15 @@ const CheckoutButton = ({ cart }: { cart: any[] }) => {
         }
       );
 
-      const sessionId = res.data.id;
-      const stripe = (window as any).Stripe(
-        "pk_test_51S6AMCL1PGDmrKPOGfpa6MW1j1HKokaA3owih5FP86hjJccLO4DzsAQj28AntnceMFHKdf0AytAypOcsdHfArSmc00inzpoIvV"
-      ); // your publishable key
-      await stripe.redirectToCheckout({ sessionId });
+      // Load Stripe.js
+      const stripe = await stripePromise;
+      if (!stripe) throw new Error("Stripe failed to load");
+
+      // Redirect to Stripe Checkout
+      await stripe.redirectToCheckout({ sessionId: res.data.id });
     } catch (err: any) {
-      alert(err.response?.data?.message || "Checkout failed");
+      console.error(err);
+      alert(err.response?.data?.error || "Checkout failed");
     }
   };
 

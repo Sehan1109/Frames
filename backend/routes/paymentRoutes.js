@@ -1,10 +1,11 @@
 import express from "express";
 import Stripe from "stripe";
+import dotenv from "dotenv"
 
-console.log("Stripe Key Loaded:", process.env.STRIPE_SECRET_KEY ? "✅ YES" : "❌ NO");
+dotenv.config();
 
 const router = express.Router();
-const stripe = new Stripe("sk_test_51S6AMCL1PGDmrKPOj3qYeA4hrm5mUy0vzLoUaF8MctL2IziOEtgiBm9NSYCn66oODtwgiM2pl1P9M80jZW7ryK5X009liYDLY5", {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
     apiVersion: "2024-06-20",
 });
 
