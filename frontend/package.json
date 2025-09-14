@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@stripe/stripe-js": "^7.9.0",
+    "@types/axios": "^0.9.36",
     "lucide-react": "^0.543.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
