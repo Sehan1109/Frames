@@ -34,7 +34,7 @@ const Home = () => {
   useEffect(() => {
     const fetchLatest = async () => {
       try {
-        const res = await axios.get(`${API_BASE}/items/latest`);
+        const res = await axios.get<Item[]>(`${API_BASE}/items/latest`);
         setLatestItems(res.data);
       } catch (err) {
         console.error("Error fetching latest items:", err);
@@ -43,7 +43,7 @@ const Home = () => {
 
     const fetchReviews = async () => {
       try {
-        const res = await axios.get(`${API_BASE}/items/reviews/all`);
+        const res = await axios.get<Review[]>(`${API_BASE}/items/reviews/all`);
         setReviews(res.data);
       } catch (err) {
         console.error("Error fetching reviews:", err);
@@ -52,7 +52,7 @@ const Home = () => {
 
     const fetchTopRated = async () => {
       try {
-        const res = await axios.get(`${API_BASE}/items/top/rated`);
+        const res = await axios.get<Item[]>(`${API_BASE}/items/top/rated`);
         setTopRatedItems(res.data);
       } catch (err) {
         console.error("Error fetching top rated items:", err);
@@ -74,7 +74,7 @@ const Home = () => {
           <img
             src="../src/assets/image7.png"
             alt="Hero"
-            className="rounded-lg shadow-md-w-[500px]"
+            className="rounded-lg shadow-md w-[500px]"
           />
           <h2 className="text-4xl font-extrabold">
             Fujo <br /> Frame

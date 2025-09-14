@@ -1,11 +1,23 @@
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import { loadStripe } from "@stripe/stripe-js";
 
-// Load Stripe with your publishable key
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
-const API_BASE = import.meta.env.VITE_API_BASE;
+const stripePromise = loadStripe(
+  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string
+);
+const API_BASE = import.meta.env.VITE_API_BASE as string;
 
-const CheckoutButton = ({ cart }: { cart: any[] }) => {
+interface CartItem {
+  _id: string;
+  title: string;
+  price: number;
+  quantity?: number;
+}
+
+interface CheckoutSessionResponse {
+  id: string;
+}
+
+const CheckoutButton = ({ cart }: { cart: CartItem[] }) => {
   const handleCheckout = async () => {
     try {
       const cartData = cart.map((item) => ({
@@ -15,8 +27,8 @@ const CheckoutButton = ({ cart }: { cart: any[] }) => {
         quantity: item.quantity || 1,
       }));
 
-      // Call backend to create checkout session
-      const res = await axios.post(
+      // ✅ Explicitly type Axios response
+      const res: AxiosResponse<CheckoutSessionResponse> = await axios.post(
         `${API_BASE}/payments/create-checkout-session`,
         { cart: cartData },
         {
@@ -26,15 +38,21 @@ const CheckoutButton = ({ cart }: { cart: any[] }) => {
         }
       );
 
-      // Load Stripe.js
       const stripe = await stripePromise;
       if (!stripe) throw new Error("Stripe failed to load");
 
-      // Redirect to Stripe Checkout
+      // ✅ Use typed response
       await stripe.redirectToCheckout({ sessionId: res.data.id });
-    } catch (err: any) {
-      console.error(err);
-      alert(err.response?.data?.error || "Checkout failed");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        console.error(err.response?.data);
+        alert(
+          (err.response?.data as { error?: string })?.error || "Checkout failed"
+        );
+      } else {
+        console.error(err);
+        alert("Unexpected error occurred");
+      }
     }
   };
 
