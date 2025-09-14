@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { FaUserCircle, FaShoppingCart } from "react-icons/fa";
 import Login from "./Login/login";
 import SignUp from "./SignUp/Signup";

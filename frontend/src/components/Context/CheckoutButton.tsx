@@ -1,9 +1,4 @@
-import { loadStripe } from "@stripe/stripe-js";
 import axios from "axios";
-
-const stripePromise = loadStripe(
-  "pk_test_51S6AMCL1PGDmrKPOGfpa6MW1j1HKokaA3owih5FP86hjJccLO4DzsAQj28AntnceMFHKdf0AytAypOcsdHfArSmc00inzpoIvV"
-);
 
 const CheckoutButton = ({ cart }: { cart: any[] }) => {
   const handleCheckout = async () => {

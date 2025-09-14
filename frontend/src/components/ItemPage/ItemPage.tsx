@@ -35,7 +35,6 @@ export default function ItemPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { addToCart } = useCart();
-  const { cart } = useCart();
 
   useEffect(() => {
     const fetchData = async () => {
