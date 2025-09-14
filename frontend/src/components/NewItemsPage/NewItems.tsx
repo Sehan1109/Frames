@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import * as axios from "axios";
+import axios from "axios";
 import { Link } from "react-router-dom";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
