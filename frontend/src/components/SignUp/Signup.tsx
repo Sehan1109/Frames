@@ -3,6 +3,27 @@ import axios from "axios";
 
 const API_BASE = import.meta.env.VITE_API_BASE;
 
+interface SignupResponse {
+  msg: string;
+  userId?: string;
+}
+
+// Custom Axios error type guard
+function isAxiosError(
+  error: unknown
+): error is {
+  isAxiosError: true;
+  response?: { data?: any };
+  message?: string;
+} {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "isAxiosError" in error &&
+    (error as any).isAxiosError === true
+  );
+}
+
 const SignUp = () => {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [message, setMessage] = useState("");
@@ -22,22 +43,32 @@ const SignUp = () => {
       formData.append("email", form.email);
       formData.append("password", form.password);
 
-      const res = await axios.post(`${API_BASE}/auth/signup`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const res = await axios.post<SignupResponse>(
+        `${API_BASE}/auth/signup`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
 
       setMessage(res.data.msg || "Signup successful!");
       setForm({ name: "", email: "", password: "" });
-    } catch (err: any) {
-      setMessage(err.response?.data?.msg || "Error signing up");
+    } catch (err: unknown) {
+      if (isAxiosError(err)) {
+        setMessage(
+          err.response?.data?.msg || err.message || "Error signing up"
+        );
+      } else {
+        setMessage("An unknown error occurred");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center">
-      <div className=" bg-white p-8 rounded-2xl drop-shadow-2xl">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="bg-white p-8 rounded-2xl drop-shadow-2xl w-full max-w-md">
         <h2 className="text-3xl font-bold text-center mb-6 text-black">
           Sign Up
         </h2>
@@ -69,7 +100,6 @@ const SignUp = () => {
             required
             className="w-full px-4 py-3 rounded-lg border-none focus:outline-none focus:ring-2 focus:ring-black"
           />
-
           <button
             type="submit"
             disabled={loading}

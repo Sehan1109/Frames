@@ -1,6 +1,5 @@
-// ItemsPage.tsx
 import { useEffect, useState } from "react";
-import axios from "axios";
+import * as axios from "axios";
 import { Link } from "react-router-dom";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
@@ -21,14 +20,34 @@ export default function NewItemsPage() {
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        const res = await axios.get(`${API_BASE}/items/all`);
+        // Use generic type directly
+        const res = await axios.get<Item[]>(`${API_BASE}/items/all`);
         setItems(res.data);
-      } catch (err) {
-        console.error("Error fetching all items:", err);
+      } catch (err: unknown) {
+        if (isAxiosError(err)) {
+          console.error(
+            "Axios error fetching items:",
+            err.response?.data || err.message
+          );
+        } else {
+          console.error("Unknown error fetching items:", err);
+        }
       }
     };
+
     fetchItems();
   }, []);
+
+  function isAxiosError(
+    error: unknown
+  ): error is { isAxiosError: true; response?: any; message?: string } {
+    return (
+      typeof error === "object" &&
+      error !== null &&
+      "isAxiosError" in error &&
+      (error as any).isAxiosError === true
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
