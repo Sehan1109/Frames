@@ -29,6 +29,8 @@ export default function AdminDashboard() {
   const [category, setCategory] = useState("Phones");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
+  const [coverImage, setCoverImage] = useState<File | null>(null);
+  const [otherImages, setOtherImages] = useState<File[]>([]);
 
   // ✅ Fetch items
   const fetchItems = async () => {
@@ -59,33 +61,35 @@ export default function AdminDashboard() {
   };
 
   const handleSave = async () => {
-    const token = localStorage.getItem("token"); // 👈 Get JWT from storage
-    if (!token) {
-      alert("You must be logged in as admin");
-      return;
-    }
+    const token = localStorage.getItem("token");
+    if (!token) return alert("You must be logged in as admin");
 
-    const body = { title, category, description, price };
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("description", description);
+    formData.append("category", category);
+    formData.append("price", price);
+
+    if (coverImage) formData.append("coverImage", coverImage);
+    otherImages.forEach((img) => formData.append("images", img));
 
     if (editingItem) {
       // Update item
       await fetch(`${API_BASE}/items/${editingItem._id}`, {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // 👈 add token
+          Authorization: `Bearer ${token}`, // only auth header; no Content-Type for FormData
         },
-        body: JSON.stringify(body),
+        body: formData,
       });
     } else {
       // Add new item
       await fetch(`${API_BASE}/items`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // 👈 add token
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(body),
+        body: formData,
       });
     }
 
@@ -260,6 +264,31 @@ export default function AdminDashboard() {
                 <option>Accessories</option>
                 <option>Others</option>
               </select>
+            </div>
+
+            <div>
+              <label className="block mb-1">Cover Image</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) =>
+                  setCoverImage(e.target.files ? e.target.files[0] : null)
+                }
+              />
+            </div>
+
+            <div>
+              <label className="block mb-1">Other Images</label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) =>
+                  setOtherImages(
+                    e.target.files ? Array.from(e.target.files) : []
+                  )
+                }
+              />
             </div>
 
             <div className="flex justify-end gap-2 mt-4">

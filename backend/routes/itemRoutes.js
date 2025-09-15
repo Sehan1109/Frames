@@ -26,7 +26,7 @@ router.post(
     protect,
     upload.fields([
         { name: "coverImage", maxCount: 1 },
-        { name: "images", maxCount: 5 },
+        { name: "images" },
     ]),
     addItem
 );
