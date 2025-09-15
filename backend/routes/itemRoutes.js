@@ -9,7 +9,7 @@ const router = express.Router();
 // ================= Multer Storage =================
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, "uploads"); // save to /uploads
+        cb(null, "uploads/"); // save to /uploads
     },
     filename: (req, file, cb) => {
         cb(null, Date.now() + "-" + file.originalname);
@@ -185,7 +185,7 @@ router.put("/:id", upload.fields([{ name: "coverImage" }, { name: "images" }]), 
 
         // New cover image
         if (req.files.coverImage) {
-            item.coverImage = req.files.coverImage[0].filename;
+            item.coverImage = req.files.coverImage[0].path;
         }
 
         // Delete selected gallery images
