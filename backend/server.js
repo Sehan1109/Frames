@@ -8,10 +8,14 @@ import authRoutes from "./routes/authRoutes.js";
 import itemRoutes from "./routes/itemRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import path from "path"
+import { fileURLToPath } from "url";
 
 connectDB();
 
 const app = express();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // ✅ Allow frontend (Netlify) to access backend
 app.use(cors({
@@ -31,7 +35,7 @@ app.get("/", (req, res) => {
     res.send("Backend running on Render 🚀");
 });
 
-app.use("/uploads", express.static(path.join(path.resolve(), "uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Start server
 const PORT = process.env.PORT || 5000;
