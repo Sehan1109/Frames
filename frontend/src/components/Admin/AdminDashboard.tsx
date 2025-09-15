@@ -82,8 +82,18 @@ export default function AdminDashboard() {
   const handleDelete = async (id: string) => {
     if (!window.confirm("Delete this item?")) return;
 
-    await fetch(`${API_BASE}/items/${id}`, { method: "DELETE" });
-    fetchItems();
+    const token = localStorage.getItem("token"); // 👈 retrieve stored token
+    if (!token) {
+      alert("You must be logged in as admin");
+      return;
+    }
+
+    await fetch(`${API_BASE}/items/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`, // 👈 add token
+      },
+    });
   };
 
   return (
