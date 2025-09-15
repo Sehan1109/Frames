@@ -59,18 +59,32 @@ export default function AdminDashboard() {
   };
 
   const handleSave = async () => {
+    const token = localStorage.getItem("token"); // 👈 Get JWT from storage
+    if (!token) {
+      alert("You must be logged in as admin");
+      return;
+    }
+
     const body = { title, category, description, price };
 
     if (editingItem) {
+      // Update item
       await fetch(`${API_BASE}/items/${editingItem._id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // 👈 add token
+        },
         body: JSON.stringify(body),
       });
     } else {
+      // Add new item
       await fetch(`${API_BASE}/items`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // 👈 add token
+        },
         body: JSON.stringify(body),
       });
     }
