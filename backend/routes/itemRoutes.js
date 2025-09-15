@@ -140,7 +140,7 @@ router.get("/reviews/all", async (req, res) => {
                 ...r.toObject(),
                 itemId: item._id,
                 itemTitle: item.title,
-                itemCoverImage: item.coverImage,
+                coverImage: item.coverImage,
             }))
         );
         res.json(reviews);

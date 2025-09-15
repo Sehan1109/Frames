@@ -8,13 +8,13 @@ export const addItem = async (req, res) => {
   try {
     const { title, description, price, category } = req.body;
 
-    const coverImage = req.files?.coverImage
-      ? req.files.coverImage[0].filename // ✅ only filename
-      : null;
+    if (req.files.coverImage) {
+      item.coverImage = req.files.coverImage[0].filename; // ✅
+    }
+    if (req.files.images) {
+      req.files.images.forEach(file => item.images.push(file.filename)); // ✅
+    }
 
-    const images = req.files?.images
-      ? req.files.images.map(file => file.filename) // ✅ only filename
-      : [];
 
     const item = await Item.create({
       title,
