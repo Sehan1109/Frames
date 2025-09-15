@@ -226,7 +226,7 @@ export default function ItemPage() {
                 {item.images.map((img, idx) => (
                   <img
                     key={idx}
-                    src={`${API_BASE}/${img}`}
+                    src={`${API_BASE.replace("/api", "")}/${img}`}
                     alt={`extra-${idx}`}
                     className="w-full h-56 object-cover rounded-lg shadow"
                   />
