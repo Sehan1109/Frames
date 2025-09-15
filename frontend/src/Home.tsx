@@ -3,6 +3,11 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import image1 from "./assets/image1.png";
+import image2 from "./assets/image2.png";
+import image3 from "./assets/image3.png";
+import image4 from "./assets/image4.png";
+import image7 from "./assets/image7.png";
 
 const API_BASE = import.meta.env.VITE_API_BASE;
 
@@ -72,7 +77,7 @@ const Home = () => {
       <section className="flex flex-col items-center py-20">
         <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-8">
           <img
-            src="../src/assets/image7.png"
+            src={image7}
             alt="Hero"
             className="rounded-lg shadow-md w-[500px]"
           />
@@ -87,10 +92,10 @@ const Home = () => {
         <h2 className="text-center text-2xl font-semibold mb-8">Categories</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
           {[
-            { name: "Phones", img: "/src/assets/image1.png" },
-            { name: "Watches", img: "/src/assets/image2.png" },
-            { name: "Accessories", img: "/src/assets/image3.png" },
-            { name: "Others", img: "/src/assets/image4.png" },
+            { name: "Phones", img: image1 },
+            { name: "Watches", img: image2 },
+            { name: "Accessories", img: image3 },
+            { name: "Others", img: image4 },
           ].map((cat) => (
             <Link
               key={cat.name}
