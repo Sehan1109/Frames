@@ -1,4 +1,3 @@
-// controllers/itemController.js
 import Item from "../models/Item.js";
 
 export const addItem = async (req, res) => {
@@ -8,15 +7,8 @@ export const addItem = async (req, res) => {
 
   try {
     const { title, description, price, category } = req.body;
-
-    // ✅ Save only filenames, not "uploads/filename"
-    const coverImage = req.files?.coverImage
-      ? req.files.coverImage[0].filename
-      : null;
-
-    const images = req.files?.images
-      ? req.files.images.map((file) => file.filename)
-      : [];
+    const coverImage = req.files?.coverImage ? `uploads/${req.files.coverImage[0].filename}` : null;
+    const images = req.files?.images ? req.files.images.map(file => `uploads/${file.filename}`) : [];
 
     const item = await Item.create({
       title,
@@ -29,8 +21,7 @@ export const addItem = async (req, res) => {
 
     res.json({ message: "Item added successfully", item });
   } catch (err) {
-    console.error("Error adding item:", err.message);
-    res.status(500).json({ message: "Server error while adding item" });
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -39,8 +30,7 @@ export const getItems = async (req, res) => {
     const items = await Item.find().sort({ createdAt: -1 });
     res.json(items);
   } catch (err) {
-    console.error("Error fetching items:", err.message);
-    res.status(500).json({ message: "Server error fetching items" });
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -50,7 +40,6 @@ export const getItemsByCategory = async (req, res) => {
     const items = await Item.find({ category }).sort({ createdAt: -1 });
     res.json(items);
   } catch (err) {
-    console.error("Error fetching category items:", err.message);
-    res.status(500).json({ message: "Server error fetching category items" });
+    res.status(500).json({ message: err.message });
   }
 };
