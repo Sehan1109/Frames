@@ -27,3 +27,22 @@ export const addItem = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+export const getItems = async (req, res) => {
+  try {
+    const items = await Item.find().sort({ createdAt: -1 });
+    res.json(items);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const getItemsByCategory = async (req, res) => {
+  try {
+    const { category } = req.params;
+    const items = await Item.find({ category }).sort({ createdAt: -1 });
+    res.json(items);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
