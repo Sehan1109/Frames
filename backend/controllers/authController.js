@@ -14,7 +14,17 @@ export const register = async (req, res) => {
 
     const user = await User.create({ name, email, password: hashedPassword });
 
-    res.json({ message: "User registered successfully", user });
+    // ✅ Generate JWT for new user
+    const token = jwt.sign(
+      { id: user._id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    res.json({
+      token,
+      isAdmin: email === "sehanmindula119@gmail.com",
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -38,7 +48,7 @@ export const login = async (req, res) => {
 
     res.json({
       token,
-      isAdmin: email === "sehanmindula119@gmail.com"
+      isAdmin: email === "sehanmindula119@gmail.com",
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
