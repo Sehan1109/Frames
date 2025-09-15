@@ -1,8 +1,10 @@
 import express from "express";
 import multer from "multer";
+import fs from "fs";
+import path from "path";
+import Item from "../models/Item.js";
 import { addItem, getItems, getItemsByCategory } from "../controllers/itemController.js";
 import { protect } from "../middlewares/authMiddleware.js";
-import Item from "../models/Item.js";
 
 const router = express.Router();
 
@@ -13,9 +15,8 @@ const storage = multer.diskStorage({
     },
     filename: (req, file, cb) => {
         cb(null, Date.now() + "-" + file.originalname);
-    }
+    },
 });
-
 const upload = multer({ storage });
 
 // ================== Item Routes ===================
@@ -59,17 +60,6 @@ router.get("/all", async (req, res) => {
     }
 });
 
-// Get reviews for an item
-router.get("/:id/reviews", async (req, res) => {
-    try {
-        const item = await Item.findById(req.params.id).populate("reviews.user", "name");
-        if (!item) return res.status(404).json({ message: "Item not found" });
-        res.json(item.reviews);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-});
-
 // Get single item
 router.get("/:id", async (req, res) => {
     try {
@@ -81,21 +71,21 @@ router.get("/:id", async (req, res) => {
     }
 });
 
-// ================== Add Review ===================
+// ================== Reviews ===================
+
+// Add review to an item
 router.post(
     "/:id/reviews",
     protect,
-    upload.array("reviewImages", 3), // allow up to 3 review images
+    upload.array("reviewImages", 3), // max 3 images
     async (req, res) => {
         const { rating, comment } = req.body;
 
         try {
             const item = await Item.findById(req.params.id);
-            if (!item) {
-                return res.status(404).json({ message: "Item not found" });
-            }
+            if (!item) return res.status(404).json({ message: "Item not found" });
 
-            // check if already reviewed
+            // Prevent duplicate review by same user
             const alreadyReviewed = item.reviews.find(
                 (r) => r.user.toString() === req.user._id.toString()
             );
@@ -103,29 +93,26 @@ router.post(
                 return res.status(400).json({ message: "Item already reviewed" });
             }
 
-            // collect uploaded image paths
-            const reviewImages = req.files ? req.files.map(f => f.filename) : [];
+            // Collect uploaded review images
+            const reviewImages = req.files ? req.files.map((f) => f.filename) : [];
 
-            // add review
             const review = {
                 user: req.user._id,
                 name: req.user.name,
                 rating: Number(rating),
                 comment,
-                images: reviewImages, // ✅ save images here
+                images: reviewImages,
             };
-            item.reviews.push(review);
 
-            // update numReviews & average rating
+            item.reviews.push(review);
             item.numReviews = item.reviews.length;
             item.rating =
                 item.reviews.reduce((acc, r) => acc + r.rating, 0) / item.reviews.length;
 
             await item.save();
-
             res.status(201).json({ message: "Review added successfully" });
         } catch (err) {
-            console.error(err.message);
+            console.error(err);
             res.status(500).json({ message: "Server error" });
         }
     }
@@ -149,14 +136,15 @@ router.get("/reviews/all", async (req, res) => {
     }
 });
 
-
 // Delete item
 router.delete("/:id", protect, async (req, res) => {
     try {
         const item = await Item.findById(req.params.id);
-        if (!item) {
-            return res.status(404).json({ message: "Item not found" });
-        }
+        if (!item) return res.status(404).json({ message: "Item not found" });
+
+        // Remove uploaded files
+        if (item.coverImage) fs.unlinkSync(path.join("uploads", item.coverImage));
+        item.images.forEach((img) => fs.unlinkSync(path.join("uploads", img)));
 
         await item.deleteOne();
         res.json({ message: "Item deleted successfully" });
@@ -166,47 +154,56 @@ router.delete("/:id", protect, async (req, res) => {
     }
 });
 
-// Update item (with optional images)
-router.put("/:id", upload.fields([{ name: "coverImage" }, { name: "images" }]), async (req, res) => {
-    try {
-        const { title, description, category, price, deletedImages, deleteCover } = req.body;
-        const item = await Item.findById(req.params.id);
+// Update item
+router.put(
+    "/:id",
+    protect,
+    upload.fields([{ name: "coverImage" }, { name: "images" }]),
+    async (req, res) => {
+        try {
+            const { title, description, category, price, deletedImages, deleteCover } =
+                req.body;
+            const item = await Item.findById(req.params.id);
+            if (!item) return res.status(404).json({ message: "Item not found" });
 
-        item.title = title;
-        item.description = description;
-        item.category = category;
-        item.price = price;
+            item.title = title;
+            item.description = description;
+            item.category = category;
+            item.price = Number(price);
 
-        // Delete cover if requested
-        if (deleteCover === "true") {
-            if (item.coverImage) fs.unlinkSync(path.join("uploads", item.coverImage));
-            item.coverImage = "";
+            // Delete cover if requested
+            if (deleteCover === "true" && item.coverImage) {
+                fs.unlinkSync(path.join("uploads", item.coverImage));
+                item.coverImage = "";
+            }
+
+            // New cover image
+            if (req.files.coverImage) {
+                item.coverImage = req.files.coverImage[0].filename;
+            }
+
+            // Delete selected gallery images
+            if (deletedImages) {
+                const toDelete = JSON.parse(deletedImages);
+                item.images = item.images.filter((img) => !toDelete.includes(img));
+                toDelete.forEach((img) => fs.unlinkSync(path.join("uploads", img)));
+            }
+
+            // Add new images
+            if (req.files.images) {
+                req.files.images.forEach((file) => item.images.push(file.filename));
+            }
+
+            await item.save();
+            res.json({ message: "Item updated", item });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ message: err.message });
         }
-
-        // New cover image
-        if (req.files.coverImage) {
-            item.coverImage = req.files.coverImage[0].path;
-        }
-
-        // Delete selected gallery images
-        if (deletedImages) {
-            const toDelete = JSON.parse(deletedImages);
-            item.images = item.images.filter(img => !toDelete.includes(img));
-            toDelete.forEach(img => fs.unlinkSync(path.join("uploads", img)));
-        }
-
-        // Add new images
-        if (req.files.images) {
-            req.files.images.forEach(file => item.images.push(file.path));
-        }
-
-        await item.save();
-        res.json({ message: "Item updated", item });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
     }
-});
+);
 
+// Top rated items
 router.get("/top/rated", async (req, res) => {
     try {
         const topRated = await Item.find().sort({ rating: -1 }).limit(4);
@@ -214,15 +211,6 @@ router.get("/top/rated", async (req, res) => {
     } catch (err) {
         console.error("Error fetching top rated items:", err.message);
         res.status(500).json({ message: "Server error fetching top rated items" });
-    }
-});
-
-router.get("/top/rated/all", async (req, res) => {
-    try {
-        const items = await Item.find().sort({ averageRating: -1 }).exec();
-        res.json(items);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
     }
 });
 

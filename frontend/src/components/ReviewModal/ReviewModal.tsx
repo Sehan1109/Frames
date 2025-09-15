@@ -4,14 +4,21 @@ import StarRating from "../StarRating/StarRating";
 interface ReviewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (rating: number, comment: string, images: File[]) => void;
+  itemId: string;
+  onReviewSubmitted?: () => void; // optional callback after successful review
 }
 
-const ReviewModal = ({ isOpen, onClose, onSubmit }: ReviewModalProps) => {
+const ReviewModal: React.FC<ReviewModalProps> = ({
+  isOpen,
+  onClose,
+  itemId,
+  onReviewSubmitted,
+}) => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [images, setImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
 
@@ -23,17 +30,55 @@ const ReviewModal = ({ isOpen, onClose, onSubmit }: ReviewModalProps) => {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (rating === 0) {
       alert("Please select a rating");
       return;
     }
-    onSubmit(rating, comment, images);
-    setRating(0);
-    setComment("");
-    setImages([]);
-    setPreviewUrls([]);
-    onClose();
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("You must be logged in to submit a review");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("rating", rating.toString());
+    formData.append("comment", comment);
+    images.forEach((img) => formData.append("reviewImages", img));
+
+    try {
+      setLoading(true);
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE}/items/${itemId}/reviews`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to submit review");
+      }
+
+      alert("Review submitted successfully!");
+      setRating(0);
+      setComment("");
+      setImages([]);
+      setPreviewUrls([]);
+      onClose();
+      if (onReviewSubmitted) onReviewSubmitted();
+    } catch (err: any) {
+      alert(err.message);
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -42,12 +87,9 @@ const ReviewModal = ({ isOpen, onClose, onSubmit }: ReviewModalProps) => {
         <h2 className="text-xl text-black font-bold mb-4 text-center">
           Write a Review
         </h2>
+
         {/* Star rating */}
-        <StarRating
-          value={rating}
-          onChange={(val) => setRating(val)}
-          size={32}
-        />
+        <StarRating value={rating} onChange={setRating} size={32} />
 
         {/* Comment */}
         <textarea
@@ -66,7 +108,6 @@ const ReviewModal = ({ isOpen, onClose, onSubmit }: ReviewModalProps) => {
             accept="image/*"
             onChange={handleImageChange}
           />
-          {/* Preview selected images */}
           <div className="flex gap-2 mt-2 flex-wrap">
             {previewUrls.map((url, idx) => (
               <img
@@ -81,14 +122,19 @@ const ReviewModal = ({ isOpen, onClose, onSubmit }: ReviewModalProps) => {
 
         {/* Buttons */}
         <div className="flex justify-end mt-4 space-x-2">
-          <button onClick={onClose} className="px-4 py-2 bg-red-600 rounded">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            disabled={loading}
+          >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
-            className="px-4 py-2 bg-black text-white rounded"
+            className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
+            disabled={loading}
           >
-            Submit
+            {loading ? "Submitting..." : "Submit"}
           </button>
         </div>
       </div>
