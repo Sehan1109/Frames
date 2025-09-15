@@ -8,18 +8,14 @@ export const addItem = async (req, res) => {
   try {
     const { title, description, price, category } = req.body;
 
-    if (req.files.coverImage) {
-      item.coverImage = req.files.coverImage[0].filename; // ✅
-    }
-    if (req.files.images) {
-      req.files.images.forEach(file => item.images.push(file.filename)); // ✅
-    }
-
+    // Collect uploaded files
+    const coverImage = req.files?.coverImage ? req.files.coverImage[0].filename : null;
+    const images = req.files?.images ? req.files.images.map(file => file.filename) : [];
 
     const item = await Item.create({
       title,
       description,
-      price,
+      price: Number(price), // ensure price is a number
       category,
       coverImage,
       images,
@@ -27,25 +23,7 @@ export const addItem = async (req, res) => {
 
     res.json({ message: "Item added successfully", item });
   } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-export const getItems = async (req, res) => {
-  try {
-    const items = await Item.find().sort({ createdAt: -1 });
-    res.json(items);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-export const getItemsByCategory = async (req, res) => {
-  try {
-    const { category } = req.params;
-    const items = await Item.find({ category }).sort({ createdAt: -1 });
-    res.json(items);
-  } catch (err) {
+    console.error("Add Item Error:", err);
     res.status(500).json({ message: err.message });
   }
 };
