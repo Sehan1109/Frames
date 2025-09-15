@@ -7,6 +7,7 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import itemRoutes from "./routes/itemRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
+import path from "path"
 
 connectDB();
 
@@ -29,6 +30,8 @@ app.use("/api/payments", paymentRoutes);
 app.get("/", (req, res) => {
     res.send("Backend running on Render 🚀");
 });
+
+app.use("/uploads", express.static(path.join(path.resolve(), "uploads")));
 
 // Start server
 const PORT = process.env.PORT || 5000;

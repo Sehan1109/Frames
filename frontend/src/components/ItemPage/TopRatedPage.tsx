@@ -46,7 +46,7 @@ const TopRatedPage = () => {
             >
               {item.coverImage && (
                 <img
-                  src={`${API_BASE}/${item.coverImage}`}
+                  src={`${API_BASE}/uploads/${item.coverImage}`}
                   alt={item.title}
                   className="w-full h-56 object-cover"
                 />

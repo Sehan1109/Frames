@@ -65,7 +65,7 @@ export default function NewItemsPage() {
             >
               {item.coverImage && (
                 <img
-                  src={`${API_BASE}/${item.coverImage}`}
+                  src={`${API_BASE}/uploads/${item.coverImage}`}
                   alt={item.title}
                   className="w-full h-48 object-cover rounded-md mb-4"
                 />

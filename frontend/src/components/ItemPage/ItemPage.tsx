@@ -155,7 +155,7 @@ export default function ItemPage() {
             <div>
               {item.coverImage && (
                 <img
-                  src={`${API_BASE}/${item.coverImage}`}
+                  src={`${API_BASE}/uploads/${item.coverImage}`}
                   alt={item.title}
                   className="w-96 h-96 object-cover rounded-lg shadow mb-4"
                 />

@@ -52,7 +52,9 @@ export default function CategoryPage() {
                 <div className="bg-white rounded-lg shadow-md p-4 text-center hover:scale-105 transition-transform">
                   {item.coverImage && (
                     <img
-                      src={`${API_BASE.replace("/api", "")}/${item.coverImage}`}
+                      src={`${API_BASE.replace("/api", "")}/uploads/${
+                        item.coverImage
+                      }`}
                       alt={item.title}
                       className="w-full h-48 object-cover rounded-md mb-4"
                     />
