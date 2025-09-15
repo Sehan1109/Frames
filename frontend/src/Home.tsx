@@ -125,7 +125,9 @@ const Home = () => {
             >
               {item.coverImage && (
                 <img
-                  src={`${API_BASE.replace("/api", "")}/${item.coverImage}`}
+                  src={`${API_BASE.replace("/api", "")}/uploads${
+                    item.coverImage
+                  }`}
                   alt={item.title}
                   className="w-full h-56 object-cover"
                 />
@@ -162,7 +164,9 @@ const Home = () => {
             >
               {item.coverImage && (
                 <img
-                  src={`${API_BASE.replace("/api", "")}/${item.coverImage}`}
+                  src={`${API_BASE.replace("/api", "")}/uploads/${
+                    item.coverImage
+                  }`}
                   alt={item.title}
                   className="w-full h-56 object-cover"
                 />
@@ -201,7 +205,9 @@ const Home = () => {
               <div className="flex items-center mb-3">
                 {review.coverImage && (
                   <img
-                    src={`${API_BASE.replace("/api", "")}/${review.coverImage}`}
+                    src={`${API_BASE.replace("/api", "")}/uploads/${
+                      review.coverImage
+                    }`}
                     alt={review.itemTitle}
                     className="w-12 h-12 rounded object-cover mr-3"
                   />
