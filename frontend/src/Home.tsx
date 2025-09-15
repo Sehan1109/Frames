@@ -125,7 +125,7 @@ const Home = () => {
             >
               {item.coverImage && (
                 <img
-                  src={`${API_BASE.replace("/api", "")}/uploads${
+                  src={`${API_BASE.replace("/api", "")}/uploads/${
                     item.coverImage
                   }`}
                   alt={item.title}
