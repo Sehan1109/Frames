@@ -185,7 +185,7 @@ router.put("/:id", upload.fields([{ name: "coverImage" }, { name: "images" }]), 
 
         // New cover image
         if (req.files.coverImage) {
-            item.coverImage = req.files.coverImage[0].path;
+            item.coverImage = req.files.coverImage[0].filename;
         }
 
         // Delete selected gallery images
@@ -197,7 +197,7 @@ router.put("/:id", upload.fields([{ name: "coverImage" }, { name: "images" }]), 
 
         // Add new images
         if (req.files.images) {
-            req.files.images.forEach(file => item.images.push(file.path));
+            req.files.images.forEach(file => item.images.push(file.filename));
         }
 
         await item.save();
