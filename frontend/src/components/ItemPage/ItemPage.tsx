@@ -286,7 +286,13 @@ export default function ItemPage() {
       <ReviewModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSubmit={submitReview}
+        itemId={item._id}
+        onReviewSubmitted={async () => {
+          const res = await axios.get<Review[]>(
+            `${API_BASE}/items/${item._id}/reviews`
+          );
+          setReviews(res.data);
+        }}
       />
     </div>
   );
