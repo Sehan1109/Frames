@@ -77,7 +77,7 @@ router.get("/:id", async (req, res) => {
 router.post(
     "/:id/reviews",
     protect,
-    upload.array("reviewImages", 3),
+    upload.array("reviewImages", 3), // max 3 images
     async (req, res) => {
         const { rating, comment } = req.body;
 
@@ -85,6 +85,7 @@ router.post(
             const item = await Item.findById(req.params.id);
             if (!item) return res.status(404).json({ message: "Item not found" });
 
+            // Prevent duplicate review by same user
             const alreadyReviewed = item.reviews.find(
                 (r) => r.user.toString() === req.user._id.toString()
             );
@@ -92,14 +93,12 @@ router.post(
                 return res.status(400).json({ message: "Item already reviewed" });
             }
 
-            // ✅ safer handling
-            const reviewImages = Array.isArray(req.files)
-                ? req.files.map((f) => f.filename)
-                : [];
+            // Collect uploaded review images
+            const reviewImages = req.files ? req.files.map((f) => f.filename) : [];
 
             const review = {
                 user: req.user._id,
-                name: req.user.name || "Anonymous",
+                name: req.user.name,
                 rating: Number(rating),
                 comment,
                 images: reviewImages,
@@ -113,7 +112,7 @@ router.post(
             await item.save();
             res.status(201).json({ message: "Review added successfully" });
         } catch (err) {
-            console.error("Review error:", err);
+            console.error(err);
             res.status(500).json({ message: "Server error" });
         }
     }
