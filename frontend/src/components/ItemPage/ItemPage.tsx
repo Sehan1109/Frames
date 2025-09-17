@@ -8,6 +8,7 @@ import ReviewModal from "../ReviewModal/ReviewModal";
 import { Globe, CheckCircle, Gift, Lock } from "lucide-react";
 import { useCart } from "../Context/CartContext";
 import { loadStripe } from "@stripe/stripe-js";
+import OrderModal from "../Modal/OrderModal";
 
 const API_BASE = import.meta.env.VITE_API_BASE as string;
 
@@ -43,8 +44,35 @@ export default function ItemPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { addToCart } = useCart();
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
 
   const [mainImage, setMainImage] = useState<string | null>(null);
+
+  const handleOrderSubmit = async (orderData: {
+    name: string;
+    address: string;
+    whatsapp: string;
+    quantity: number;
+  }) => {
+    if (!item) return;
+
+    try {
+      await axios.post(
+        `${API_BASE}/orders`,
+        {
+          productId: item._id,
+          ...orderData,
+          price: item.price * orderData.quantity,
+        },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+      alert("Order placed successfully ✅");
+    } catch (err) {
+      alert("Failed to place order ❌");
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -70,31 +98,6 @@ export default function ItemPage() {
     };
     fetchData();
   }, [id]);
-
-  const handleCheckout = async () => {
-    if (!item) return;
-    try {
-      const cartData = [
-        { _id: item._id, title: item.title, price: item.price, quantity: 1 },
-      ];
-      const res = await axios.post<{ id: string }>(
-        `${API_BASE}/payments/create-checkout-session`,
-        { cart: cartData },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
-      );
-
-      const stripe = await loadStripe(
-        import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string
-      );
-      if (stripe) await stripe.redirectToCheckout({ sessionId: res.data.id });
-    } catch (err: unknown) {
-      if (isAxiosError(err))
-        alert(err.response?.data?.message || "Checkout failed");
-      else alert("Unexpected checkout error");
-    }
-  };
 
   if (!item) return <p className="text-center py-20">Loading...</p>;
 
@@ -189,9 +192,9 @@ export default function ItemPage() {
                 </button>
                 <button
                   className="w-full sm:w-auto px-6 py-3 rounded-lg bg-black text-white hover:bg-gray-800 transition font-semibold"
-                  onClick={handleCheckout}
+                  onClick={() => setIsModalOpen(true)}
                 >
-                  Buy Now
+                  Order
                 </button>
               </div>
             </div>
@@ -238,6 +241,12 @@ export default function ItemPage() {
       </main>
 
       <Footer />
+
+      <OrderModal
+        isOpen={isOrderModalOpen}
+        onClose={() => setIsOrderModalOpen(false)}
+        onSubmit={handleOrderSubmit}
+      />
 
       {/* Review Modal */}
       <ReviewModal
