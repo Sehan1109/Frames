@@ -42,6 +42,18 @@ export default function AdminDashboard() {
     totalOrders: 0,
     totalRevenue: 0,
   });
+  const [view, setView] = useState<"products" | "orders">("products");
+  const [orders, setOrders] = useState<any[]>([]);
+
+  const fetchOrders = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    const res = await fetch(`${API_BASE}/admin/orders`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    setOrders(data);
+  };
 
   const fetchStats = async () => {
     const token = localStorage.getItem("token");
@@ -168,6 +180,15 @@ export default function AdminDashboard() {
           <button className="flex items-center gap-3 p-2 w-full hover:bg-gray-700 rounded">
             📊 Dashboard
           </button>
+          <button
+            onClick={() => {
+              setView("orders");
+              fetchOrders();
+            }}
+            className="flex items-center gap-3 p-2 w-full hover:bg-gray-700 rounded"
+          >
+            📦 Orders
+          </button>
           <button className="flex items-center gap-3 p-2 w-full hover:bg-gray-700 rounded">
             ⚙️ Settings
           </button>
@@ -267,6 +288,71 @@ export default function AdminDashboard() {
           </div>
         </section>
       </main>
+
+      {/* Orders Table */}
+      {view === "orders" && (
+        <section className="p-6">
+          <h2 className="text-xl font-bold mb-4">Manage Orders</h2>
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <table className="w-full text-left border-collapse">
+              <thead className="bg-gray-200 text-gray-700">
+                <tr>
+                  <th className="p-3">Customer</th>
+                  <th className="p-3">Product</th>
+                  <th className="p-3">Qty</th>
+                  <th className="p-3">Total</th>
+                  <th className="p-3">Status</th>
+                  <th className="p-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.map((order) => (
+                  <tr
+                    key={order._id}
+                    className="border-t hover:bg-gray-50 transition"
+                  >
+                    <td className="p-3">{order.name}</td>
+                    <td className="p-3">{order.product?.title}</td>
+                    <td className="p-3">{order.quantity}</td>
+                    <td className="p-3">${order.totalAmount}</td>
+                    <td className="p-3">
+                      {order.status === "completed" ? (
+                        <span className="text-green-600 font-semibold">
+                          Completed
+                        </span>
+                      ) : (
+                        <span className="text-yellow-600 font-semibold">
+                          Pending
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-3">
+                      {order.status !== "completed" && (
+                        <button
+                          onClick={async () => {
+                            const token = localStorage.getItem("token");
+                            await fetch(
+                              `${API_BASE}/admin/orders/${order._id}/complete`,
+                              {
+                                method: "PUT",
+                                headers: { Authorization: `Bearer ${token}` },
+                              }
+                            );
+                            fetchOrders();
+                          }}
+                          className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                        >
+                          Mark Complete
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
 
       {message && (
         <div
