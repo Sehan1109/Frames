@@ -22,4 +22,25 @@ router.get("/stats", protect, adminOnly, async (req, res) => {
     }
 });
 
+// Get all orders
+router.get("/", protect, async (req, res) => {
+    if (!req.isAdmin) return res.status(403).json({ message: "Not authorized" });
+
+    const orders = await Order.find().populate("product", "title Price");
+    res.json(orders);
+});
+
+// Mark order as complete
+router.put("/:id/complete", protect, async (req, res) => {
+    if (!req.isAdmin) return res.status(403).json({ message: "Not authorized" });
+
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    order.status = "completed";
+    await order.save();
+
+    res.json({ message: "Order marked as completed", order });
+});
+
 export default router;
