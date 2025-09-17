@@ -12,11 +12,12 @@ router.get("/stats", protect, adminOnly, async (req, res) => {
         const totalRevenueAgg = await Order.aggregate([
             { $group: { _id: null, total: { $sum: "$totalAmount" } } },
         ]);
+        const newOrders = await Order.countDocuments({ status: "pending" });
 
         const totalRevenue =
             totalRevenueAgg.length > 0 ? totalRevenueAgg[0].total : 0;
 
-        res.json({ totalOrders, totalRevenue });
+        res.json({ totalOrders, totalRevenue, newOrders });
     } catch (err) {
         res.status(500).json({ message: "Failed to fetch stats" });
     }

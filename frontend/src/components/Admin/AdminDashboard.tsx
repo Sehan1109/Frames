@@ -39,9 +39,11 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<{
     totalOrders: number;
     totalRevenue: number;
+    newOrders: number;
   }>({
     totalOrders: 0,
     totalRevenue: 0,
+    newOrders: 0,
   });
 
   const fetchStats = async () => {
@@ -215,7 +217,7 @@ export default function AdminDashboard() {
             className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition"
           >
             <h3 className="text-gray-500">New Orders</h3>
-            <p className="text-2xl font-bold">{stats.totalOrders}</p>
+            <p className="text-2xl font-bold">{stats.newOrders}</p>
           </Link>
         </section>
 
