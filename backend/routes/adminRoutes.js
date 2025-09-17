@@ -31,7 +31,7 @@ router.get("/orders", protect, adminOnly, async (req, res) => {
 });
 
 // Mark order as complete
-router.put("/:id/complete", protect, async (req, res) => {
+router.put("/orders/:id/complete", protect, async (req, res) => {
     if (!req.isAdmin) return res.status(403).json({ message: "Not authorized" });
 
     const order = await Order.findById(req.params.id);
