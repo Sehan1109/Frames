@@ -8,7 +8,6 @@ import {
   FaSearch,
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
 
 const API_BASE = import.meta.env.VITE_API_BASE;
 
@@ -186,26 +185,21 @@ export default function AdminDashboard() {
 
         {/* Stats */}
         <section className="grid md:grid-cols-3 gap-6 mb-10">
-          {[
-            { title: "Total Products", value: items.length },
-            { title: "Revenue", value: `$${stats.totalRevenue}` },
-            {
-              title: "New Orders",
-              value: stats.newOrders,
-              link: "/admin/orders",
-            },
-          ].map((card, i) => (
-            <motion.div
-              key={card.title}
-              className="bg-white text-black p-6 rounded-2xl shadow-lg hover:shadow-yellow-400/50 transition cursor-pointer"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.2 }}
-            >
-              <h3 className="text-gray-500">{card.title}</h3>
-              <p className="text-3xl font-bold mt-2">{card.value}</p>
-            </motion.div>
-          ))}
+          <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+            <h3 className="text-gray-500">Total Products</h3>
+            <p className="text-2xl font-bold">{items.length}</p>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+            <h3 className="text-gray-500">Revenue</h3>
+            <p className="text-2xl font-bold">${stats.totalRevenue}</p>
+          </div>
+          <Link
+            to="/admin/orders"
+            className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition"
+          >
+            <h3 className="text-gray-500">New Orders</h3>
+            <p className="text-2xl font-bold">{stats.newOrders}</p>
+          </Link>
         </section>
 
         {/* Products Table */}
@@ -281,6 +275,87 @@ export default function AdminDashboard() {
           }`}
         >
           {message}
+        </div>
+      )}
+
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg animate-fade-in">
+            <h2 className="text-xl font-bold mb-4">
+              {editingItem ? "Edit Product" : "Add Product"}
+            </h2>
+            <div className="space-y-3">
+              <input
+                className="w-full border p-2 rounded"
+                placeholder="Title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+              <input
+                className="w-full border p-2 rounded"
+                placeholder="Description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+              <input
+                className="w-full border p-2 rounded"
+                placeholder="Price"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+              />
+              <select
+                className="w-full border p-2 rounded"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+              >
+                <option>Phones</option>
+                <option>Watches</option>
+                <option>Accessories</option>
+                <option>Others</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block mb-1">Cover Image</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) =>
+                  setCoverImage(e.target.files ? e.target.files[0] : null)
+                }
+              />
+            </div>
+
+            <div>
+              <label className="block mb-1">Other Images</label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) =>
+                  setOtherImages(
+                    e.target.files ? Array.from(e.target.files) : []
+                  )
+                }
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              >
+                Save
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
