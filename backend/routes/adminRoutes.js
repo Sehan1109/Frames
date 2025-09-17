@@ -1,12 +1,12 @@
 // routes/adminRoutes.js
 import express from "express";
 import Order from "../models/Order.js";
-import { authMiddleware, adminMiddleware } from "../middlewares/authMiddleware.js";
+import { protect, adminOnly } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
 // GET revenue & orders count
-router.get("/stats", authMiddleware, adminMiddleware, async (req, res) => {
+router.get("/stats", protect, adminOnly, async (req, res) => {
     try {
         const totalOrders = await Order.countDocuments();
         const totalRevenueAgg = await Order.aggregate([

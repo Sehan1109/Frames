@@ -1,21 +1,43 @@
+// middleware/auth.js
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 
 const ADMIN_EMAIL = "sehanmindula119@gmail.com";
 
+// ✅ Auth middleware
 export const protect = async (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1];
-  if (!token) return res.status(401).json({ message: "No token provided" });
+  let token;
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id).select("_id name email"); // 👈 fetch full user
-    if (!user) return res.status(401).json({ message: "User not found" });
+  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+    try {
+      token = req.headers.authorization.split(" ")[1];
 
-    req.user = user;
-    req.isAdmin = user.email === ADMIN_EMAIL;
+      // Verify token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      // Get user from DB (no password)
+      const user = await User.findById(decoded.id).select("_id name email");
+      if (!user) {
+        return res.status(401).json({ message: "User not found" });
+      }
+
+      req.user = user; // attach user to request
+      next();
+    } catch (error) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+  }
+
+  if (!token) {
+    return res.status(401).json({ message: "No token provided" });
+  }
+};
+
+// ✅ Admin check middleware
+export const adminOnly = (req, res, next) => {
+  if (req.user && req.user.email === ADMIN_EMAIL) {
     next();
-  } catch (err) {
-    res.status(401).json({ message: "Invalid token" });
+  } else {
+    return res.status(403).json({ message: "Admin access only" });
   }
 };
