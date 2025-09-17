@@ -58,7 +58,9 @@ const TopRatedPage = () => {
                   {item.coverImage && (
                     <div className="relative">
                       <img
-                        src={`${API_BASE}/uploads/${item.coverImage}`}
+                        src={`${API_BASE.replace("/api", "")}/uploads/${
+                          item.coverImage
+                        }`}
                         alt={item.title}
                         className="w-full h-56 object-cover group-hover:opacity-90 transition"
                       />
