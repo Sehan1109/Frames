@@ -23,7 +23,7 @@ router.get("/stats", protect, adminOnly, async (req, res) => {
 });
 
 // Get all orders
-router.get("/", protect, async (req, res) => {
+router.get("/orders", protect, adminOnly, async (req, res) => {
     if (!req.isAdmin) return res.status(403).json({ message: "Not authorized" });
 
     const orders = await Order.find().populate("product", "title Price");

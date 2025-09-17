@@ -5,7 +5,7 @@ import { protect } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-router.post("/orders", protect, async (req, res) => {
+router.post("/", protect, async (req, res) => {
     try {
         const { productId, name, address, whatsapp, quantity, price } = req.body;
 
