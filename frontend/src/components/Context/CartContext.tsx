@@ -27,49 +27,57 @@ type CartContextType = {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  // Load cart from localStorage (if available)
+  // ✅ Load cart safely from localStorage
   const [cart, setCart] = useState<CartItem[]>(() => {
-    const stored = localStorage.getItem("cart");
-    return stored ? JSON.parse(stored) : [];
+    try {
+      const stored = localStorage.getItem("cart");
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.error("Failed to parse cart from localStorage", error);
+      return [];
+    }
   });
 
-  // Save cart to localStorage whenever it changes
+  // ✅ Save cart to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
-  // Add item to cart
+  // ✅ Add item to cart
   const addToCart = (item: CartItem) => {
     setCart((prev) => {
       const existing = prev.find((i) => i._id === item._id);
       if (existing) {
-        // Increase quantity if already in cart
         return prev.map((i) =>
-          i._id === item._id ? { ...i, quantity: i.quantity + 1 } : i
+          i._id === item._id
+            ? { ...i, quantity: i.quantity + (item.quantity || 1) }
+            : i
         );
       }
-      // Add new item with quantity fallback
       return [...prev, { ...item, quantity: item.quantity || 1 }];
     });
   };
 
-  // Remove item
+  // ✅ Remove item
   const removeFromCart = (id: string) => {
     setCart((prev) => prev.filter((item) => item._id !== id));
   };
 
-  // Update quantity
+  // ✅ Update quantity (minimum 1)
   const updateQuantity = (id: string, quantity: number) => {
-    if (quantity < 1) return; // prevent invalid quantity
+    if (quantity < 1) return;
     setCart((prev) =>
       prev.map((item) => (item._id === id ? { ...item, quantity } : item))
     );
   };
 
-  // Clear entire cart (e.g. after checkout)
-  const clearCart = () => setCart([]);
+  // ✅ Clear entire cart (also from localStorage)
+  const clearCart = () => {
+    setCart([]);
+    localStorage.removeItem("cart");
+  };
 
-  // Derived values
+  // ✅ Derived values
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = cart.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -93,7 +101,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// Hook for easy access
+// ✅ Hook for easy access
 export const useCart = () => {
   const context = useContext(CartContext);
   if (!context) {
