@@ -184,7 +184,7 @@ export default function AdminDashboard() {
         </header>
 
         {/* Stats */}
-        <section className="grid md:grid-cols-3 gap-6 mb-10">
+        <section className="grid md:grid-cols-3 gap-6 mb-10 text-blackS">
           <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
             <h3 className="text-gray-500">Total Products</h3>
             <p className="text-2xl font-bold">{items.length}</p>
