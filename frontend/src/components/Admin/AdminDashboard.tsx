@@ -358,7 +358,7 @@ export default function AdminDashboard() {
                 {!Array.isArray(orders) && (
                   <tr>
                     <td colSpan={6} className="text-center text-red-500">
-                      {orders?.message || "Failed to load orders"}
+                      "Failed to load orders"
                     </td>
                   </tr>
                 )}
