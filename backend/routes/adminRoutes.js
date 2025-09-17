@@ -41,7 +41,23 @@ router.put("/orders/:id/complete", protect, adminOnly, async (req, res) => {
         order.status = "completed";
         await order.save();
 
-        res.json({ message: "Order marked as completed", order });
+        // Optional: Recalculate stats
+        const totalOrders = await Order.countDocuments({ status: "pending" });
+        const completedOrders = await Order.countDocuments({ status: "completed" });
+        const totalRevenue = await Order.aggregate([
+            { $match: { status: "completed" } },
+            { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+        ]);
+
+        res.json({
+            message: "Order marked as completed",
+            order,
+            stats: {
+                totalOrders,
+                completedOrders,
+                totalRevenue: totalRevenue[0]?.total || 0,
+            },
+        });
     } catch (err) {
         res.status(500).json({ message: "Failed to update order" });
     }

@@ -48,17 +48,25 @@ export default function AdminDashboard() {
   const fetchOrders = async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
+
     const res = await fetch(`${API_BASE}/admin/orders`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
+
     if (!res.ok) {
       console.error("Fetch orders failed:", data);
       showMessage(data.message || "Failed to fetch orders", "error");
       setOrders([]);
       return;
     }
-    setOrders(data);
+
+    setOrders(data.orders || data); // if your backend returns orders
+    setStats({
+      ...stats,
+      totalOrders: data.stats?.totalOrders || stats.totalOrders,
+      totalRevenue: data.stats?.totalRevenue || stats.totalRevenue,
+    });
   };
 
   const fetchStats = async () => {
@@ -338,14 +346,24 @@ export default function AdminDashboard() {
                           <button
                             onClick={async () => {
                               const token = localStorage.getItem("token");
-                              await fetch(
+                              const res = await fetch(
                                 `${API_BASE}/admin/orders/${order._id}/complete`,
                                 {
                                   method: "PUT",
                                   headers: { Authorization: `Bearer ${token}` },
                                 }
                               );
-                              fetchOrders();
+                              const data = await res.json();
+                              if (res.ok) {
+                                fetchOrders(); // refresh orders
+                                if (data.stats) setStats(data.stats); // update stats dynamically
+                                showMessage("Order marked as complete ✅");
+                              } else {
+                                showMessage(
+                                  data.message || "Failed to update order ❌",
+                                  "error"
+                                );
+                              }
                             }}
                             className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
                           >
