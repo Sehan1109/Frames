@@ -52,6 +52,12 @@ export default function AdminDashboard() {
       headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
     });
     const data = await res.json();
+    if (!res.ok) {
+      console.error("Fetch orders failed:", data);
+      showMessage(data.message || "Failed to fetch orders", "error");
+      setOrders([]);
+      return;
+    }
     setOrders(data);
   };
 
@@ -306,48 +312,56 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {orders.map((order) => (
-                  <tr
-                    key={order._id}
-                    className="border-t hover:bg-gray-50 transition"
-                  >
-                    <td className="p-3">{order.name}</td>
-                    <td className="p-3">{order.product?.title}</td>
-                    <td className="p-3">{order.quantity}</td>
-                    <td className="p-3">${order.totalAmount}</td>
-                    <td className="p-3">
-                      {order.status === "completed" ? (
-                        <span className="text-green-600 font-semibold">
-                          Completed
-                        </span>
-                      ) : (
-                        <span className="text-yellow-600 font-semibold">
-                          Pending
-                        </span>
-                      )}
-                    </td>
-                    <td className="p-3">
-                      {order.status !== "completed" && (
-                        <button
-                          onClick={async () => {
-                            const token = localStorage.getItem("token");
-                            await fetch(
-                              `${API_BASE}/admin/orders/${order._id}/complete`,
-                              {
-                                method: "PUT",
-                                headers: { Authorization: `Bearer ${token}` },
-                              }
-                            );
-                            fetchOrders();
-                          }}
-                          className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-                        >
-                          Mark Complete
-                        </button>
-                      )}
+                {Array.isArray(orders) &&
+                  orders.map((order) => (
+                    <tr
+                      key={order._id}
+                      className="border-t hover:bg-gray-50 transition"
+                    >
+                      <td className="p-3">{order.name}</td>
+                      <td className="p-3">{order.product?.title}</td>
+                      <td className="p-3">{order.quantity}</td>
+                      <td className="p-3">${order.totalAmount}</td>
+                      <td className="p-3">
+                        {order.status === "completed" ? (
+                          <span className="text-green-600 font-semibold">
+                            Completed
+                          </span>
+                        ) : (
+                          <span className="text-yellow-600 font-semibold">
+                            Pending
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-3">
+                        {order.status !== "completed" && (
+                          <button
+                            onClick={async () => {
+                              const token = localStorage.getItem("token");
+                              await fetch(
+                                `${API_BASE}/admin/orders/${order._id}/complete`,
+                                {
+                                  method: "PUT",
+                                  headers: { Authorization: `Bearer ${token}` },
+                                }
+                              );
+                              fetchOrders();
+                            }}
+                            className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                          >
+                            Mark Complete
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                {!Array.isArray(orders) && (
+                  <tr>
+                    <td colSpan={6} className="text-center text-red-500">
+                      {orders?.message || "Failed to load orders"}
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
