@@ -29,7 +29,7 @@ const Footer = () => {
         </div>
       </footer>
 
-      <div className="bg-black text-white text-center py-4 text-sm">
+      <div className="bg-gradient-to-r from-gray-900 to-black text-white text-center py-4 text-sm">
         © All Right Reserved
       </div>
     </div>

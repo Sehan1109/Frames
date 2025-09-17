@@ -32,7 +32,7 @@ const Navbar = () => {
 
   return (
     <div>
-      <header className="fixed top-0 left-0 w-full flex justify-between items-center px-6 py-4 bg-black text-white shadow-md z-50">
+      <header className="fixed top-0 left-0 w-full flex justify-between items-center px-6 py-4 bg-gradient-to-r from-gray-900 to-black text-white shadow-md z-50">
         <h1
           className="text-2xl font-bold cursor-pointer"
           onClick={() => navigate("/")}
@@ -107,9 +107,9 @@ const Navbar = () => {
       {/* Auth Modal */}
       {showAuth && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-2xl shadow-lg w-96 relative">
+          <div className="backdrop-blur-md p-6 rounded-2xl shadow-lg w-96 relative">
             <button
-              className="absolute top-2 right-2 text-gray-600 hover:text-black"
+              className="absolute top-2 right-2 text-white hover:text-yellow-400"
               onClick={() => setShowAuth(false)}
             >
               ✖

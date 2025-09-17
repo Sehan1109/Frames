@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const API_BASE = import.meta.env.VITE_API_BASE;
 
 interface SignupResponse {
-  msg: string;
-  userId?: string;
+  token: string;
+  isAdmin: boolean;
 }
 
 // Custom Axios error type guard
@@ -26,8 +27,9 @@ function isAxiosError(
 
 const SignUp = () => {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
-  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -38,28 +40,25 @@ const SignUp = () => {
     setLoading(true);
 
     try {
-      const formData = new FormData();
-      formData.append("name", form.name);
-      formData.append("email", form.email);
-      formData.append("password", form.password);
+      const res = await axios.post<SignupResponse>(`${API_BASE}/auth/signup`, {
+        name: form.name,
+        email: form.email,
+        password: form.password,
+      });
 
-      const res = await axios.post<SignupResponse>(
-        `${API_BASE}/auth/signup`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      // Store token & user info in localStorage
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("isAdmin", String(res.data.isAdmin));
 
-      setMessage(res.data.msg || "Signup successful!");
-      setForm({ name: "", email: "", password: "" });
+      // Redirect like login
+      navigate(res.data.isAdmin ? "/admin" : "/");
     } catch (err: unknown) {
       if (isAxiosError(err)) {
         setMessage(
-          err.response?.data?.msg || err.message || "Error signing up"
+          err.response?.data?.message || err.message || "Signup failed"
         );
       } else {
-        setMessage("An unknown error occurred");
+        setMessage("An unexpected error occurred");
       }
     } finally {
       setLoading(false);

@@ -9,7 +9,6 @@ interface LoginResponse {
   isAdmin: boolean;
 }
 
-// ✅ Type guard for Axios errors
 function isAxiosError(
   error: unknown
 ): error is { isAxiosError: boolean; response?: any } {
@@ -32,7 +31,6 @@ const Login = () => {
         password,
       });
 
-      // ✅ Save token in localStorage
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("isAdmin", String(res.data.isAdmin));
 
@@ -49,36 +47,77 @@ const Login = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="bg-white p-8 rounded-2xl drop-shadow-2xl w-96">
-        <h2 className="text-3xl font-bold text-center mb-6 text-black">
-          Login
+    <div className="flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-gray-800 rounded-2xl">
+      <div className="w-full max-w-md bg-white/10 backdrop-blur-md p-8 rounded-2xl shadow-xl border border-white/20">
+        <h2 className="text-4xl font-extrabold text-center mb-8 text-white">
+          Welcome Back 👋
         </h2>
-        <form onSubmit={handleLogin} className="space-y-5">
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            required
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-black"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            required
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-black"
-          />
+        <form onSubmit={handleLogin} className="space-y-6">
+          <div>
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              required
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80 text-black"
+            />
+          </div>
+          <div>
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              required
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80 text-black"
+            />
+          </div>
+          <div className="text-right">
+            <button
+              type="button"
+              className="text-sm text-blue-400 hover:underline"
+            >
+              Forgot password?
+            </button>
+          </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-black text-white rounded-full font-semibold hover:bg-gray-800 transition-colors duration-200 disabled:opacity-50"
+            className="w-full py-3 rounded-xl font-semibold bg-gradient-to-r from-yellow-600 to-yellow-500 text-white hover:from-yellow-700 hover:to-yellow-600 transition-all duration-300 flex items-center justify-center disabled:opacity-50"
           >
+            {loading ? (
+              <svg
+                className="animate-spin h-5 w-5 mr-2 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-30"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-90"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4l3-3-3-3v4a12 12 0 100 24v-4l-3 3 3 3v-4a8 8 0 01-8-8z"
+                />
+              </svg>
+            ) : null}
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
+
+        <p className="mt-6 text-center text-gray-300">
+          Don’t have an account?{" "}
+          <span className="text-blue-400 hover:underline cursor-pointer">
+            Sign up
+          </span>
+        </p>
       </div>
     </div>
   );

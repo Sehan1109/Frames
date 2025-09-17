@@ -13,6 +13,7 @@
   "dependencies": {
     "@stripe/stripe-js": "^7.9.0",
     "axios": "^1.12.2",
+    "framer-motion": "^12.23.13",
     "lucide-react": "^0.543.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

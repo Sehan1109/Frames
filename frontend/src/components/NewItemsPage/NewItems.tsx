@@ -16,11 +16,12 @@ interface Item {
 
 export default function NewItemsPage() {
   const [items, setItems] = useState<Item[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        // Use generic type directly
+        setLoading(true);
         const res = await axios.get<Item[]>(`${API_BASE}/items/all`);
         setItems(res.data);
       } catch (err: unknown) {
@@ -32,6 +33,8 @@ export default function NewItemsPage() {
         } else {
           console.error("Unknown error fetching items:", err);
         }
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -50,32 +53,63 @@ export default function NewItemsPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       <Navbar />
-      <main className="flex-1 py-12">
-        <h2 className="text-black text-center text-2xl font-bold mb-8">
-          All Items
+      <main className="flex-1 py-40 px-4 sm:px-8 lg:px-16">
+        <h2 className="text-black text-center text-3xl font-extrabold mb-10">
+          🆕 All New Items
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {items.map((item) => (
-            <Link
-              key={item._id}
-              to={`/item/${item._id}`}
-              className="bg-white rounded-lg shadow-md p-4 text-center hover:scale-105 transition-transform"
-            >
-              {item.coverImage && (
-                <img
-                  src={`${API_BASE}/uploads/${item.coverImage}`}
-                  alt={item.title}
-                  className="w-full h-48 object-cover rounded-md mb-4"
-                />
-              )}
-              <h3 className="font-semibold text-black">{item.title}</h3>
-              <p className="text-gray-500">{item.description}</p>
-              <p className="text-black text-lg font-bold mt-2">${item.price}</p>
-            </Link>
-          ))}
-        </div>
+
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="w-12 h-12 border-4 border-gray-300 border-t-black rounded-full animate-spin"></div>
+          </div>
+        ) : items.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-8 max-w-7xl mx-auto">
+            {items.map((item) => (
+              <Link
+                key={item._id}
+                to={`/item/${item._id}`}
+                className="group no-underline"
+              >
+                <div className="bg-white rounded-xl shadow-md hover:shadow-2xl overflow-hidden transform transition duration-300 hover:scale-105 flex flex-col">
+                  {item.coverImage && (
+                    <div className="relative">
+                      <img
+                        src={`${API_BASE}/uploads/${item.coverImage}`}
+                        alt={item.title}
+                        className="w-full h-56 object-cover group-hover:opacity-90 transition"
+                      />
+                      <span className="absolute top-3 left-3 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-lg shadow-md">
+                        New
+                      </span>
+                    </div>
+                  )}
+                  <div className="p-4 flex flex-col flex-1">
+                    <h3 className="font-bold text-lg text-gray-900 mb-2 line-clamp-1">
+                      {item.title}
+                    </h3>
+                    <p className="text-gray-600 text-sm line-clamp-2 mb-3 flex-1">
+                      {item.description}
+                    </p>
+                    <div className="flex items-center justify-between mt-auto">
+                      <p className="text-lg font-bold text-gray-800">
+                        ${item.price}
+                      </p>
+                      <button className="bg-black text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-800 transition">
+                        View
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="text-center text-gray-600 text-lg">
+            No items found at the moment.
+          </p>
+        )}
       </main>
       <Footer />
     </div>
