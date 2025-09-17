@@ -17,22 +17,26 @@ const Navbar = () => {
 
   const handleScroll = (id: string) => {
     if (location.pathname === "/") {
-      // already on homepage → just scroll
       const section = document.getElementById(id);
       if (section) {
         section.scrollIntoView({ behavior: "smooth" });
       }
       setMobileMenu(false);
     } else {
-      // go to home and pass the target section
       navigate("/", { state: { scrollTo: id } });
       setMobileMenu(false);
     }
   };
 
+  const handleCheckout = () => {
+    navigate("/cart");
+    setShowCart(false);
+  };
+
   return (
     <div>
       <header className="fixed top-0 left-0 w-full flex justify-between items-center px-6 py-4 bg-gradient-to-r from-gray-900 to-black text-white shadow-md z-50">
+        {/* Logo */}
         <h1
           className="text-2xl font-bold cursor-pointer"
           onClick={() => navigate("/")}
@@ -67,6 +71,36 @@ const Navbar = () => {
               <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
                 {cart.length}
               </span>
+            )}
+
+            {/* Cart Dropdown */}
+            {showCart && (
+              <div className="absolute right-0 mt-2 w-64 bg-white text-black rounded-lg shadow-lg z-50 p-4">
+                <h3 className="font-bold mb-2">Cart Items</h3>
+                {cart.length === 0 ? (
+                  <p className="text-gray-500">Your cart is empty</p>
+                ) : (
+                  <>
+                    {cart.map((item) => (
+                      <div
+                        key={item._id}
+                        className="flex justify-between mb-2 border-b pb-1"
+                      >
+                        <span>{item.title}</span>
+                        <span>
+                          ${item.price} x {item.quantity}
+                        </span>
+                      </div>
+                    ))}
+                    <button
+                      className="w-full mt-2 bg-yellow-400 text-black py-2 rounded hover:bg-gray-800"
+                      onClick={handleCheckout}
+                    >
+                      Checkout
+                    </button>
+                  </>
+                )}
+              </div>
             )}
           </div>
 
@@ -107,7 +141,7 @@ const Navbar = () => {
       {/* Auth Modal */}
       {showAuth && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="backdrop-blur-md p-6 rounded-2xl shadow-lg w-96 relative">
+          <div className="backdrop-blur-md p-6 rounded-2xl shadow-lg w-96 relative bg-gray-900 text-white">
             <button
               className="absolute top-2 right-2 text-white hover:text-yellow-400"
               onClick={() => setShowAuth(false)}
@@ -115,6 +149,29 @@ const Navbar = () => {
               ✖
             </button>
             {isLogin ? <Login /> : <SignUp />}
+            <p className="mt-4 text-sm text-center">
+              {isLogin ? (
+                <>
+                  Don’t have an account?{" "}
+                  <span
+                    className="text-yellow-400 cursor-pointer"
+                    onClick={() => setIsLogin(false)}
+                  >
+                    Sign Up
+                  </span>
+                </>
+              ) : (
+                <>
+                  Already have an account?{" "}
+                  <span
+                    className="text-yellow-400 cursor-pointer"
+                    onClick={() => setIsLogin(true)}
+                  >
+                    Login
+                  </span>
+                </>
+              )}
+            </p>
           </div>
         </div>
       )}
