@@ -155,14 +155,28 @@ router.get("/reviews/all", async (req, res) => {
 });
 
 // Delete item
+function safeDelete(filePath) {
+    try {
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+        }
+    } catch (err) {
+        console.error("Error deleting file:", err.message);
+    }
+}
+
 router.delete("/:id", protect, async (req, res) => {
     try {
         const item = await Item.findById(req.params.id);
         if (!item) return res.status(404).json({ message: "Item not found" });
 
-        // Remove uploaded files
-        if (item.coverImage) fs.unlinkSync(path.join("uploads", item.coverImage));
-        item.images.forEach((img) => fs.unlinkSync(path.join("uploads", img)));
+        // Safely remove uploaded files
+        if (item.coverImage) safeDelete(path.join("uploads", item.coverImage));
+        if (item.images && item.images.length > 0) {
+            item.images.forEach((img) =>
+                safeDelete(path.join("uploads", img))
+            );
+        }
 
         await item.deleteOne();
         res.json({ message: "Item deleted successfully" });
