@@ -49,7 +49,7 @@ export default function AdminDashboard() {
     const token = localStorage.getItem("token");
     if (!token) return;
     const res = await fetch(`${API_BASE}/admin/orders`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
     });
     const data = await res.json();
     setOrders(data);
@@ -65,7 +65,12 @@ export default function AdminDashboard() {
       },
     });
     const data = await res.json();
-    setStats(data);
+    if (!Array.isArray(data)) {
+      console.error("Orders fetch failed", data);
+      setOrders([]);
+      return;
+    }
+    setOrders(data);
   };
 
   // ✅ Fetch items
