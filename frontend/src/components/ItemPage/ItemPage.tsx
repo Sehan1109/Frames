@@ -7,7 +7,6 @@ import StarRating from "../StarRating/StarRating";
 import ReviewModal from "../ReviewModal/ReviewModal";
 import { Globe, CheckCircle, Gift, Lock } from "lucide-react";
 import { useCart } from "../Context/CartContext";
-import { loadStripe } from "@stripe/stripe-js";
 import OrderModal from "../Modal/OrderModal";
 
 const API_BASE = import.meta.env.VITE_API_BASE as string;

@@ -1,9 +1,10 @@
 import { useCart } from "../Context/CartContext";
-import CheckoutButton from "../Context/CheckoutButton";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Trash2 } from "lucide-react";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
+import OrderModal from "../Modal/OrderModal";
+import axios from "axios";
 
 const API_BASE = import.meta.env.VITE_API_BASE;
 
@@ -12,6 +13,36 @@ const CartPage = () => {
   const [quantities, setQuantities] = useState(
     cart.map((item) => item.quantity || 1)
   );
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+
+  const handleOrderSubmit = async (orderData: {
+    name: string;
+    address: string;
+    whatsapp: string;
+  }) => {
+    try {
+      for (let i = 0; i < cart.length; i++) {
+        const cartItem = cart[i];
+        await axios.post(
+          `${API_BASE}/orders`,
+          {
+            productId: cartItem._id,
+            ...orderData,
+            quantity: quantities[i],
+            price: cartItem.price * quantities[i],
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+      }
+      alert("Order placed successfully ✅");
+    } catch (err) {
+      alert("Failed to place order ❌");
+    }
+  };
 
   const handleQuantityChange = (index: number, value: number) => {
     if (value < 1) return;
@@ -25,6 +56,10 @@ const CartPage = () => {
     (total, item, i) => total + item.price * (quantities[i] || 1),
     0
   );
+
+  useEffect(() => {
+    setQuantities(cart.map((item) => item.quantity || 1));
+  }, [cart]);
 
   if (cart.length === 0)
     return (
@@ -89,16 +124,21 @@ const CartPage = () => {
               Total:{" "}
               <span className="text-green-600">${totalPrice.toFixed(2)}</span>
             </p>
-            <CheckoutButton
-              cart={cart.map((item, i) => ({
-                ...item,
-                quantity: quantities[i],
-              }))}
-            />
+            <button
+              className="w-full sm:w-auto px-6 py-3 rounded-lg bg-black text-white hover:bg-gray-800 transition font-semibold"
+              onClick={() => setIsOrderModalOpen(true)}
+            >
+              Order
+            </button>
           </div>
         </div>
       </div>
       <Footer />
+      <OrderModal
+        isOpen={isOrderModalOpen}
+        onClose={() => setIsOrderModalOpen(false)}
+        onSubmit={handleOrderSubmit}
+      />
     </div>
   );
 };
