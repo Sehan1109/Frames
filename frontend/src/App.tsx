@@ -7,6 +7,7 @@ import ItemPage from "./components/ItemPage/ItemPage";
 import NewItemsPage from "./components/NewItemsPage/NewItems";
 import TopRatedPage from "./components/ItemPage/TopRatedPage";
 import CartPage from "./components/CartPage/CartPage";
+import Order from "./components/Admin/Order";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
       <Route path="/items" element={<NewItemsPage />} />
       <Route path="/top-rated" element={<TopRatedPage />} />
       <Route path="/cart" element={<CartPage />} />
+      <Route path="/admin/orders" element={<Order />} />
     </Routes>
   );
 }
