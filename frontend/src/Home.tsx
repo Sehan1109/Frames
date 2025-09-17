@@ -44,7 +44,7 @@ const Home = () => {
         const [latest, reviewData, topRated] = await Promise.all([
           axios.get<Item[]>(`${API_BASE}/items/latest`),
           axios.get<Review[]>(`${API_BASE}/items/reviews/all`),
-          axios.get<Item[]>(`${API_BASE}/items/top/rated`),
+          axios.get<Item[]>(`${API_BASE}/items/top/rated/all`),
         ]);
         setLatestItems(latest.data);
         setReviews(reviewData.data);
