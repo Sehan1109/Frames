@@ -60,6 +60,24 @@ router.get("/all", async (req, res) => {
     }
 });
 
+// Get reviews for a specific item
+router.get("/:id/reviews", async (req, res) => {
+    try {
+        const item = await Item.findById(req.params.id).populate(
+            "reviews.user", // assuming review.user stores ObjectId of User
+            "name"          // only return name
+        );
+
+        if (!item) return res.status(404).json({ message: "Item not found" });
+
+        res.json(item.reviews);
+    } catch (err) {
+        console.error("Error fetching reviews:", err.message);
+        res.status(500).json({ message: "Server error fetching reviews" });
+    }
+});
+
+
 // Get single item
 router.get("/:id", async (req, res) => {
     try {

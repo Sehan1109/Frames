@@ -174,7 +174,7 @@ export default function ItemPage() {
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
-                  className="w-full sm:w-auto px-6 py-3 rounded-lg border bg-gray-100 hover:bg-gray-200 transition font-semibold"
+                  className="w-full sm:w-auto px-6 py-3 rounded-lg border bg-gray-400 hover:bg-gray-500 transition font-semibold"
                   onClick={() =>
                     addToCart({
                       _id: item._id,
