@@ -8,6 +8,7 @@ import {
   FaSearch,
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 
 const API_BASE = import.meta.env.VITE_API_BASE;
 
@@ -25,7 +26,7 @@ export default function AdminDashboard() {
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
 
-  // form states
+  // Form states
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("Phones");
   const [description, setDescription] = useState("");
@@ -36,11 +37,8 @@ export default function AdminDashboard() {
   const [messageType, setMessageType] = useState<"success" | "error">(
     "success"
   );
-  const [stats, setStats] = useState<{
-    totalOrders: number;
-    totalRevenue: number;
-    newOrders: number;
-  }>({
+
+  const [stats, setStats] = useState({
     totalOrders: 0,
     totalRevenue: 0,
     newOrders: 0,
@@ -51,15 +49,12 @@ export default function AdminDashboard() {
     if (!token) return;
 
     const res = await fetch(`${API_BASE}/admin/stats`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
     setStats(data);
   };
 
-  // ✅ Fetch items
   const fetchItems = async () => {
     const res = await fetch(`${API_BASE}/items/all`);
     const data = await res.json();
@@ -103,50 +98,40 @@ export default function AdminDashboard() {
 
     try {
       if (editingItem) {
-        // Update item
         await fetch(`${API_BASE}/items/${editingItem._id}`, {
           method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`, // only auth header; no Content-Type for FormData
-          },
+          headers: { Authorization: `Bearer ${token}` },
           body: formData,
         });
         showMessage("Product updated successfully ✅");
       } else {
-        // Add new item
         await fetch(`${API_BASE}/items`, {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
           body: formData,
         });
         showMessage("Product added successfully ✅");
       }
-
       fetchItems();
       setShowModal(false);
-    } catch (err) {
+    } catch {
       showMessage("Failed to save product ❌", "error");
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!window.confirm("Delete this item?")) return;
-
-    const token = localStorage.getItem("token"); // 👈 retrieve stored token
-    if (!token) return showMessage("You must be logged in as a admin", "error");
+    const token = localStorage.getItem("token");
+    if (!token) return showMessage("You must be logged in as admin", "error");
 
     try {
       await fetch(`${API_BASE}/items/${id}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`, // 👈 add token
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       fetchItems();
       showMessage("Product deleted successfully ✅");
-    } catch (err) {
+    } catch {
       showMessage("Failed to delete product ❌", "error");
     }
   };
@@ -158,85 +143,88 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="flex font-poppins h-screen text-black">
+    <div className="flex font-poppins min-h-screen bg-gradient-to-r from-black via-gray-900 to-black text-white">
       {/* Sidebar */}
-      <aside className="w-64 bg-black text-white flex flex-col">
-        <div className="p-6 text-xl font-bold border-b border-gray-700">
+      <aside className="w-64 bg-black/80 backdrop-blur-md border-r border-gray-700 flex flex-col">
+        <div className="p-6 text-xl font-extrabold tracking-wide text-yellow-400">
           Admin Panel
         </div>
-        <nav className="flex-1 p-4 space-y-2">
-          <button className="flex items-center gap-3 p-2 w-full hover:bg-gray-700 rounded">
+        <nav className="flex-1 p-4 space-y-3">
+          <button className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-gray-800 transition">
             <FaBox /> Products
           </button>
-          <button className="flex items-center gap-3 p-2 w-full hover:bg-gray-700 rounded">
+          <button className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-gray-800 transition">
             📊 Dashboard
           </button>
-          <button className="flex items-center gap-3 p-2 w-full hover:bg-gray-700 rounded">
+          <button className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-gray-800 transition">
             ⚙️ Settings
           </button>
         </nav>
-        <div className="p-4 border-t border-gray-700 text-sm">
-          © 2025 MyStore
-        </div>
+        <div className="p-4 text-xs text-gray-400">© 2025 FujoFrame</div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 bg-gray-100">
+      {/* Main */}
+      <main className="flex-1 p-6 overflow-y-auto">
         {/* Topbar */}
-        <header className="flex justify-between items-center bg-white shadow px-6 py-4">
-          <div className="flex items-center gap-3 bg-gray-100 px-3 py-2 rounded">
-            <FaSearch className="text-gray-500" />
+        <header className="flex justify-between items-center mb-8">
+          <div className="flex items-center gap-3 bg-gray-800 px-3 py-2 rounded-lg">
+            <FaSearch className="text-gray-400" />
             <input
               type="text"
               placeholder="Search..."
-              className="bg-transparent outline-none"
+              className="bg-transparent outline-none text-white"
             />
           </div>
           <div className="flex items-center gap-4">
-            <FaBell className="text-gray-600 text-xl cursor-pointer" />
+            <FaBell className="text-gray-400 text-xl cursor-pointer hover:text-yellow-400 transition" />
             <img
               src="https://ui-avatars.com/api/?name=Admin"
-              alt="profile"
-              className="w-8 h-8 rounded-full"
+              className="w-10 h-10 rounded-full border border-yellow-400"
             />
           </div>
         </header>
 
-        {/* Dashboard Stats */}
-        <section className="p-6 grid md:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
-            <h3 className="text-gray-500">Total Products</h3>
-            <p className="text-2xl font-bold">{items.length}</p>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
-            <h3 className="text-gray-500">Revenue</h3>
-            <p className="text-2xl font-bold">${stats.totalRevenue}</p>
-          </div>
-          <Link
-            to="/admin/orders"
-            className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition"
-          >
-            <h3 className="text-gray-500">New Orders</h3>
-            <p className="text-2xl font-bold">{stats.newOrders}</p>
-          </Link>
+        {/* Stats */}
+        <section className="grid md:grid-cols-3 gap-6 mb-10">
+          {[
+            { title: "Total Products", value: items.length },
+            { title: "Revenue", value: `$${stats.totalRevenue}` },
+            {
+              title: "New Orders",
+              value: stats.newOrders,
+              link: "/admin/orders",
+            },
+          ].map((card, i) => (
+            <motion.div
+              key={card.title}
+              className="bg-white text-black p-6 rounded-2xl shadow-lg hover:shadow-yellow-400/50 transition cursor-pointer"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.2 }}
+            >
+              <h3 className="text-gray-500">{card.title}</h3>
+              <p className="text-3xl font-bold mt-2">{card.value}</p>
+            </motion.div>
+          ))}
         </section>
 
         {/* Products Table */}
-        <section className="p-6">
+        <section>
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">Manage Products</h2>
+            <h2 className="text-2xl font-bold">Manage Products</h2>
             <button
               onClick={() => handleOpenModal()}
-              className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded hover:bg-gray-800"
+              className="flex items-center gap-2 bg-yellow-400 text-black px-4 py-2 rounded-lg font-semibold hover:bg-yellow-300 transition"
             >
               <FaPlus /> Add Product
             </button>
           </div>
 
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <table className="w-full text-left border-collapse">
-              <thead className="bg-gray-200 text-gray-700">
+          <div className="bg-white text-black rounded-xl shadow-lg overflow-hidden">
+            <table className="w-full border-collapse">
+              <thead className="bg-gray-100 text-gray-700">
                 <tr>
+                  <th className="p-3">Image</th>
                   <th className="p-3">Title</th>
                   <th className="p-3">Category</th>
                   <th className="p-3">Price</th>
@@ -249,10 +237,21 @@ export default function AdminDashboard() {
                     key={item._id}
                     className="border-t hover:bg-gray-50 transition"
                   >
+                    <td className="p-3">
+                      {item.coverImage && (
+                        <img
+                          src={`${API_BASE.replace("/api", "")}/uploads/${
+                            item.coverImage
+                          }`}
+                          alt={item.title}
+                          className="w-12 h-12 object-cover rounded"
+                        />
+                      )}
+                    </td>
                     <td className="p-3">{item.title}</td>
                     <td className="p-3">{item.category}</td>
                     <td className="p-3">${item.price}</td>
-                    <td className="p-3 flex gap-2">
+                    <td className="p-3 flex gap-3">
                       <button
                         onClick={() => handleOpenModal(item)}
                         className="flex items-center gap-1 text-blue-600 hover:underline"
@@ -274,93 +273,14 @@ export default function AdminDashboard() {
         </section>
       </main>
 
+      {/* Toast */}
       {message && (
         <div
-          className={`fixed bottom-5 right-5 px-4 py-2 rounded shadow-lg text-white 
-      ${messageType === "success" ? "bg-green-600" : "bg-red-600"}`}
+          className={`fixed bottom-6 right-6 px-4 py-2 rounded-lg shadow-lg text-white ${
+            messageType === "success" ? "bg-green-600" : "bg-red-600"
+          }`}
         >
           {message}
-        </div>
-      )}
-
-      {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg animate-fade-in">
-            <h2 className="text-xl font-bold mb-4">
-              {editingItem ? "Edit Product" : "Add Product"}
-            </h2>
-            <div className="space-y-3">
-              <input
-                className="w-full border p-2 rounded"
-                placeholder="Title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-              />
-              <input
-                className="w-full border p-2 rounded"
-                placeholder="Description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-              <input
-                className="w-full border p-2 rounded"
-                placeholder="Price"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-              />
-              <select
-                className="w-full border p-2 rounded"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-              >
-                <option>Phones</option>
-                <option>Watches</option>
-                <option>Accessories</option>
-                <option>Others</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block mb-1">Cover Image</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) =>
-                  setCoverImage(e.target.files ? e.target.files[0] : null)
-                }
-              />
-            </div>
-
-            <div>
-              <label className="block mb-1">Other Images</label>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={(e) =>
-                  setOtherImages(
-                    e.target.files ? Array.from(e.target.files) : []
-                  )
-                }
-              />
-            </div>
-
-            <div className="flex justify-end gap-2 mt-4">
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-              >
-                Save
-              </button>
-            </div>
-          </div>
         </div>
       )}
     </div>
