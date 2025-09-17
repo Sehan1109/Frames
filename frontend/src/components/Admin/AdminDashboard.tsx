@@ -65,12 +65,7 @@ export default function AdminDashboard() {
       },
     });
     const data = await res.json();
-    if (!Array.isArray(data)) {
-      console.error("Orders fetch failed", data);
-      setOrders([]);
-      return;
-    }
-    setOrders(data);
+    setStats(data);
   };
 
   // ✅ Fetch items
