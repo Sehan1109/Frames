@@ -236,7 +236,7 @@ router.put(
 );
 
 // Top rated items
-router.get("/top/rated", async (req, res) => {
+router.get("/top/rated/all", async (req, res) => {
     try {
         const topRated = await Item.find().sort({ rating: -1 }).limit(4);
         res.json(topRated);
