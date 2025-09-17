@@ -192,7 +192,7 @@ export default function ItemPage() {
                 </button>
                 <button
                   className="w-full sm:w-auto px-6 py-3 rounded-lg bg-black text-white hover:bg-gray-800 transition font-semibold"
-                  onClick={() => setIsModalOpen(true)}
+                  onClick={() => setIsOrderModalOpen(true)}
                 >
                   Order
                 </button>
