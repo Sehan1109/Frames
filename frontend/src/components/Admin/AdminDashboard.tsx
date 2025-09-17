@@ -35,6 +35,26 @@ export default function AdminDashboard() {
   const [messageType, setMessageType] = useState<"success" | "error">(
     "success"
   );
+  const [stats, setStats] = useState<{
+    totalOrders: number;
+    totalRevenue: number;
+  }>({
+    totalOrders: 0,
+    totalRevenue: 0,
+  });
+
+  const fetchStats = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const res = await fetch(`${API_BASE}/admin/stats`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await res.json();
+    setStats(data);
+  };
 
   // ✅ Fetch items
   const fetchItems = async () => {
@@ -45,6 +65,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchItems();
+    fetchStats();
   }, []);
 
   const handleOpenModal = (item?: Item) => {
@@ -186,11 +207,11 @@ export default function AdminDashboard() {
           </div>
           <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
             <h3 className="text-gray-500">Revenue</h3>
-            <p className="text-2xl font-bold">$12,430</p>
+            <p className="text-2xl font-bold">${stats.totalRevenue}</p>
           </div>
           <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
             <h3 className="text-gray-500">Orders</h3>
-            <p className="text-2xl font-bold">56</p>
+            <p className="text-2xl font-bold">{stats.totalOrders}</p>
           </div>
         </section>
 

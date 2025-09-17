@@ -8,6 +8,7 @@ import authRoutes from "./routes/authRoutes.js";
 import itemRoutes from "./routes/itemRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import path from "path"
+import adminRoutes from "./routes/adminRoutes.js";
 
 connectDB();
 
@@ -32,6 +33,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/uploads", express.static(path.join(path.resolve(), "uploads")));
+app.use("/api/admin", adminRoutes);
 
 // Start server
 const PORT = process.env.PORT || 5000;
