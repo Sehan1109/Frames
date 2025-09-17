@@ -8,6 +8,7 @@ import image2 from "./assets/image2.png";
 import image3 from "./assets/image3.png";
 import image4 from "./assets/image4.png";
 import image7 from "./assets/image7.png";
+import { useLocation } from "react-router-dom";
 
 const API_BASE = import.meta.env.VITE_API_BASE;
 
@@ -35,6 +36,7 @@ const Home = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [topRatedItems, setTopRatedItems] = useState<Item[]>([]);
+  const location = useLocation();
 
   useEffect(() => {
     const fetchLatest = async () => {
@@ -64,10 +66,17 @@ const Home = () => {
       }
     };
 
+    if (location.state?.scrollTo) {
+      const section = document.getElementById(location.state.scrollTo);
+      if (section) {
+        section.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+
     fetchLatest();
     fetchReviews();
     fetchTopRated();
-  }, []);
+  }, [location.state]);
 
   return (
     <div className="w-full min-h-screen bg-white text-black flex flex-col">
