@@ -31,6 +31,10 @@ export default function AdminDashboard() {
   const [price, setPrice] = useState("");
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [otherImages, setOtherImages] = useState<File[]>([]);
+  const [message, setMessage] = useState<string | null>(null);
+  const [messageType, setMessageType] = useState<"success" | "error">(
+    "success"
+  );
 
   // ✅ Fetch items
   const fetchItems = async () => {
@@ -62,7 +66,7 @@ export default function AdminDashboard() {
 
   const handleSave = async () => {
     const token = localStorage.getItem("token");
-    if (!token) return alert("You must be logged in as admin");
+    if (!token) return showMessage("You must be logged in as admin", "error");
 
     const formData = new FormData();
     formData.append("title", title);
@@ -73,45 +77,60 @@ export default function AdminDashboard() {
     if (coverImage) formData.append("coverImage", coverImage);
     otherImages.forEach((img) => formData.append("images", img));
 
-    if (editingItem) {
-      // Update item
-      await fetch(`${API_BASE}/items/${editingItem._id}`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`, // only auth header; no Content-Type for FormData
-        },
-        body: formData,
-      });
-    } else {
-      // Add new item
-      await fetch(`${API_BASE}/items`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-    }
+    try {
+      if (editingItem) {
+        // Update item
+        await fetch(`${API_BASE}/items/${editingItem._id}`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`, // only auth header; no Content-Type for FormData
+          },
+          body: formData,
+        });
+        showMessage("Product updated successfully ✅");
+      } else {
+        // Add new item
+        await fetch(`${API_BASE}/items`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        });
+        showMessage("Product added successfully ✅");
+      }
 
-    fetchItems();
-    setShowModal(false);
+      fetchItems();
+      setShowModal(false);
+    } catch (err) {
+      showMessage("Failed to save product ❌", "error");
+    }
   };
 
   const handleDelete = async (id: string) => {
     if (!window.confirm("Delete this item?")) return;
 
     const token = localStorage.getItem("token"); // 👈 retrieve stored token
-    if (!token) {
-      alert("You must be logged in as admin");
-      return;
-    }
+    if (!token) return showMessage("You must be logged in as a admin", "error");
 
-    await fetch(`${API_BASE}/items/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`, // 👈 add token
-      },
-    });
+    try {
+      await fetch(`${API_BASE}/items/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`, // 👈 add token
+        },
+      });
+      fetchItems();
+      showMessage("Product deleted successfully ✅");
+    } catch (err) {
+      showMessage("Failed to delete product ❌", "error");
+    }
+  };
+
+  const showMessage = (msg: string, type: "success" | "error" = "success") => {
+    setMessage(msg);
+    setMessageType(type);
+    setTimeout(() => setMessage(null), 3000);
   };
 
   return (
@@ -227,6 +246,15 @@ export default function AdminDashboard() {
           </div>
         </section>
       </main>
+
+      {message && (
+        <div
+          className={`fixed bottom-5 right-5 px-4 py-2 rounded shadow-lg text-white 
+      ${messageType === "success" ? "bg-green-600" : "bg-red-600"}`}
+        >
+          {message}
+        </div>
+      )}
 
       {/* Modal */}
       {showModal && (
