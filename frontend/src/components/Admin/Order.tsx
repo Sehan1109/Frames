@@ -60,7 +60,7 @@ export default function Order() {
 
   const deleteOrder = async (orderId: string) => {
     const token = localStorage.getItem("token");
-    const res = await fetch(`${API_BASE}/admin/orders/${orderId}`, {
+    const res = await fetch(`${API_BASE}/admin/orders/${orderId}/delete`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
