@@ -83,10 +83,10 @@ export default function Order() {
                 key={order._id}
                 className="border-t hover:bg-gray-50 transition"
               >
-                <td className="p-3">{order.name}</td>
-                <td className="p-3">{order.product?.title}</td>
-                <td className="p-3">{order.quantity}</td>
-                <td className="p-3">${order.totalAmount}</td>
+                <td className="p-3 text-black">{order.name}</td>
+                <td className="p-3 text-black">{order.product?.title}</td>
+                <td className="p-3 text-black">{order.quantity}</td>
+                <td className="p-3 text-black">${order.totalAmount}</td>
                 <td className="p-3">
                   {order.status === "completed" ? (
                     <span className="text-green-600 font-semibold">
