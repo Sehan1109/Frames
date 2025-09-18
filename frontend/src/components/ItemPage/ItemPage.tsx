@@ -245,6 +245,7 @@ export default function ItemPage() {
         isOpen={isOrderModalOpen}
         onClose={() => setIsOrderModalOpen(false)}
         onSubmit={handleOrderSubmit}
+        showQuantity={true}
       />
 
       {/* Review Modal */}

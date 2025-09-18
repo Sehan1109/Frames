@@ -7,11 +7,17 @@ interface OrderModalProps {
     name: string;
     address: string;
     whatsapp: string;
-    quantity: number;
+    quantity?: number;
   }) => void;
+  showQuantity?: boolean;
 }
 
-function OrderModal({ isOpen, onClose, onSubmit }: OrderModalProps) {
+function OrderModal({
+  isOpen,
+  onClose,
+  onSubmit,
+  showQuantity = true,
+}: OrderModalProps) {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
@@ -31,6 +37,7 @@ function OrderModal({ isOpen, onClose, onSubmit }: OrderModalProps) {
             className="w-full border p-2 rounded"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            required
           />
           <input
             type="text"
@@ -38,6 +45,7 @@ function OrderModal({ isOpen, onClose, onSubmit }: OrderModalProps) {
             className="w-full border p-2 rounded"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
+            required
           />
           <input
             type="text"
@@ -45,14 +53,18 @@ function OrderModal({ isOpen, onClose, onSubmit }: OrderModalProps) {
             className="w-full border p-2 rounded"
             value={whatsapp}
             onChange={(e) => setWhatsapp(e.target.value)}
+            required
           />
-          <input
-            type="number"
-            min={1}
-            className="w-full border p-2 rounded"
-            value={quantity}
-            onChange={(e) => setQuantity(Number(e.target.value))}
-          />
+          {showQuantity && (
+            <input
+              type="number"
+              min={1}
+              className="w-full border p-2 rounded"
+              value={quantity}
+              onChange={(e) => setQuantity(Number(e.target.value))}
+              required
+            />
+          )}
         </div>
 
         <div className="flex justify-end gap-2 mt-4">

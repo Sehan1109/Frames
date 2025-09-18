@@ -142,6 +142,7 @@ const CartPage = () => {
         isOpen={isOrderModalOpen}
         onClose={() => setIsOrderModalOpen(false)}
         onSubmit={handleOrderSubmit}
+        showQuantity={false}
       />
     </div>
   );
