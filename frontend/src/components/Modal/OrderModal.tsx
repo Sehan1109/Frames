@@ -76,6 +76,15 @@ function OrderModal({
           </button>
           <button
             onClick={() => {
+              if (!name.trim() || !address.trim() || !whatsapp.trim()) {
+                alert("Please fill in all required fields.");
+                return;
+              }
+              if (showQuantity && quantity < 1) {
+                alert("Quantity must be at least 1.");
+                return;
+              }
+
               onSubmit({ name, address, whatsapp, quantity });
               onClose();
             }}
