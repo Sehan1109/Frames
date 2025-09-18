@@ -143,25 +143,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex font-poppins min-h-screen bg-gradient-to-r from-black via-gray-900 to-black text-white">
-      {/* Sidebar */}
-      <aside className="w-64 bg-black/80 backdrop-blur-md border-r border-gray-700 flex flex-col">
-        <div className="p-6 text-xl font-extrabold tracking-wide text-yellow-400">
-          Admin Panel
-        </div>
-        <nav className="flex-1 p-4 space-y-3">
-          <button className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-gray-800 transition">
-            <FaBox /> Products
-          </button>
-          <button className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-gray-800 transition">
-            📊 Dashboard
-          </button>
-          <button className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-gray-800 transition">
-            ⚙️ Settings
-          </button>
-        </nav>
-        <div className="p-4 text-xs text-gray-400">© 2025 FujoFrame</div>
-      </aside>
-
       {/* Main */}
       <main className="flex-1 p-6 overflow-y-auto">
         {/* Topbar */}

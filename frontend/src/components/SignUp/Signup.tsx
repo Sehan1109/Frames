@@ -1,115 +1,110 @@
-import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 
-const API_BASE = import.meta.env.VITE_API_BASE;
-
-interface SignupResponse {
-  token: string;
-  isAdmin: boolean;
-}
-
-// Custom Axios error type guard
-function isAxiosError(
-  error: unknown
-): error is {
-  isAxiosError: true;
-  response?: { data?: any };
-  message?: string;
-} {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "isAxiosError" in error &&
-    (error as any).isAxiosError === true
-  );
-}
+const API_BASE = import.meta.env.VITE_API_BASE as string;
 
 const SignUp = () => {
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const res = await axios.post<SignupResponse>(`${API_BASE}/auth/signup`, {
-        name: form.name,
-        email: form.email,
-        password: form.password,
+      await axios.post(`${API_BASE}/auth/register`, {
+        name,
+        email,
+        password,
       });
 
-      // Store token & user info in localStorage
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("isAdmin", String(res.data.isAdmin));
-
-      // Redirect like login
-      navigate(res.data.isAdmin ? "/admin" : "/");
-    } catch (err: unknown) {
-      if (isAxiosError(err)) {
-        setMessage(
-          err.response?.data?.message || err.message || "Signup failed"
-        );
-      } else {
-        setMessage("An unexpected error occurred");
-      }
+      alert("Account created successfully ✅");
+      navigate("/login"); // redirect to login after signup
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Signup failed ❌");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-2xl drop-shadow-2xl w-full max-w-md">
-        <h2 className="text-3xl font-bold text-center mb-6 text-black">
-          Sign Up
+    <div className="flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-gray-800 rounded-2xl">
+      <div className="w-full max-w-md bg-white/10 backdrop-blur-md p-8 rounded-2xl shadow-xl border border-white/20">
+        <h2 className="text-4xl font-extrabold text-center mb-8 text-white">
+          Create Account 📝
         </h2>
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <input
-            type="text"
-            name="name"
-            placeholder="Full Name"
-            value={form.name}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-3 rounded-lg border-none focus:outline-none focus:ring-2 focus:ring-black"
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={form.email}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-3 rounded-lg border-none focus:outline-none focus:ring-2 focus:ring-black"
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={form.password}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-3 rounded-lg border-none focus:outline-none focus:ring-2 focus:ring-black"
-          />
+        <form onSubmit={handleSignUp} className="space-y-6">
+          <div>
+            <input
+              type="text"
+              placeholder="Full Name"
+              value={name}
+              required
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80 text-black"
+            />
+          </div>
+          <div>
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              required
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80 text-black"
+            />
+          </div>
+          <div>
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              required
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80 text-black"
+            />
+          </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-black text-white rounded-full font-semibold hover:bg-gray-800 transition-colors duration-200 disabled:opacity-50"
+            className="w-full py-3 rounded-xl font-semibold bg-gradient-to-r from-yellow-600 to-yellow-500 text-white hover:from-yellow-700 hover:to-yellow-600 transition-all duration-300 flex items-center justify-center disabled:opacity-50"
           >
-            {loading ? "Signing up..." : "Sign Up"}
+            {loading ? (
+              <svg
+                className="animate-spin h-5 w-5 mr-2 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-30"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-90"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4l3-3-3-3v4a12 12 0 100 24v-4l-3 3 3 3v-4a8 8 0 01-8-8z"
+                />
+              </svg>
+            ) : null}
+            {loading ? "Creating..." : "Sign Up"}
           </button>
         </form>
-        {message && (
-          <p className="text-center text-sm mt-4 text-gray-700">{message}</p>
-        )}
+
+        <p className="mt-6 text-center text-gray-300">
+          Already have an account?{" "}
+          <Link to="/login" className="text-blue-400 hover:underline">
+            Login
+          </Link>
+        </p>
       </div>
     </div>
   );
