@@ -50,11 +50,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       if (existing) {
         return prev.map((i) =>
           i._id === item._id
-            ? { ...i, quantity: i.quantity + (item.quantity || 1) }
+            ? { ...i, quantity: i.quantity + item.quantity }
             : i
         );
       }
-      return [...prev, { ...item, quantity: item.quantity || 1 }];
+      return [...prev, item];
     });
   };
 
@@ -71,10 +71,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
-  // ✅ Clear entire cart (also from localStorage)
+  // ✅ Clear entire cart
   const clearCart = () => {
     setCart([]);
-    localStorage.removeItem("cart");
   };
 
   // ✅ Derived values

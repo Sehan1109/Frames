@@ -9,7 +9,7 @@ import axios from "axios";
 const API_BASE = import.meta.env.VITE_API_BASE;
 
 const CartPage = () => {
-  const { cart, removeFromCart, updateQuantity } = useCart();
+  const { cart, removeFromCart, updateQuantity, clearCart } = useCart();
   const [quantities, setQuantities] = useState(
     cart.map((item) => item.quantity || 1)
   );
@@ -38,7 +38,11 @@ const CartPage = () => {
           }
         );
       }
+
       alert("Order placed successfully ✅");
+
+      // ✅ Clear cart after successful order
+      clearCart();
     } catch (err) {
       alert("Failed to place order ❌");
     }
