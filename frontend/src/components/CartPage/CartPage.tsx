@@ -91,7 +91,9 @@ const CartPage = () => {
                 <div className="flex items-center gap-4">
                   {item.coverImage && (
                     <img
-                      src={`${API_BASE}/${item.coverImage}`}
+                      src={`${API_BASE.replace("/api", "")}/uploads/${
+                        item.coverImage
+                      }`}
                       alt={item.title}
                       className="w-20 h-20 object-cover rounded-lg"
                     />
@@ -103,15 +105,28 @@ const CartPage = () => {
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <input
-                    type="number"
-                    min={1}
-                    value={quantities[index]}
-                    onChange={(e) =>
-                      handleQuantityChange(index, Number(e.target.value))
-                    }
-                    className="w-16 px-2 py-1 border rounded-lg text-center"
-                  />
+                  <div className="flex items-center border rounded-lg">
+                    <button
+                      onClick={() =>
+                        handleQuantityChange(index, quantities[index] - 1)
+                      }
+                      className="px-3 py-1 text-lg font-bold text-gray-600 hover:text-black"
+                    >
+                      −
+                    </button>
+                    <span className="w-12 text-center">
+                      {quantities[index]}
+                    </span>
+                    <button
+                      onClick={() =>
+                        handleQuantityChange(index, quantities[index] + 1)
+                      }
+                      className="px-3 py-1 text-lg font-bold text-gray-600 hover:text-black"
+                    >
+                      +
+                    </button>
+                  </div>
+
                   <button
                     onClick={() => removeFromCart(item._id)}
                     className="text-red-500 hover:text-red-700"
