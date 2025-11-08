@@ -1,4 +1,3 @@
-# cloudbuild.yaml (secure version)
 steps:
   # -----------------------------
   # Build and push backend image
@@ -24,15 +23,18 @@ steps:
     args:
       [
         'build',
-        # --- ADD THESE LINES ---
+        # --- FIX: Pass secrets as build arguments ---
         '--build-arg', 'VITE_API_BASE=${VITE_API_BASE}',
         '--build-arg', 'VITE_PAYHERE_MERCHANT_ID=${VITE_PAYHERE_MERCHANT_ID}',
         '--build-arg', 'VITE_STRIPE_PUBLISHABLE_KEY=${VITE_STRIPE_PUBLISHABLE_KEY}',
-        # ------------------------
+        # -------------------------------------------
         '-f', 'frontend/front.dockerfile',
         '-t', 'gcr.io/$PROJECT_ID/frames-frontend:latest',
         './frontend'
       ]
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      ['push', 'gcr.io/$PROJECT_ID/frames-frontend:latest']
 
   # -----------------------------
   # Deploy backend to Cloud Run
@@ -45,7 +47,7 @@ steps:
         'run', 'deploy', 'frames-backend',
         '--image', 'gcr.io/$PROJECT_ID/frames-backend:latest',
         '--platform', 'managed',
-        '--region', 'asia-south1',
+        '--region', 'europe-west1', # <-- UPDATED REGION
         '--allow-unauthenticated',
         '--set-env-vars', 'MONGO_URI=$MONGO_URI,PORT=5000'
       ]
@@ -61,9 +63,10 @@ steps:
         'run', 'deploy', 'frames-frontend',
         '--image', 'gcr.io/$PROJECT_ID/frames-frontend:latest',
         '--platform', 'managed',
-        '--region', 'asia-south1',
-        '--allow-unauthenticated',
-        '--set-env-vars', 'VITE_API_BASE=https://frames-backend-xxxx.a.run.app,VITE_STRIPE_PUBLISHABLE_KEY=$VITE_STRIPE_PUBLISHABLE_KEY,VITE_PAYHERE_MERCHANT_ID=$VITE_PAYHERE_MERCHANT_ID'
+        '--region', 'europe-west1', # <-- UPDATED REGION
+        '--port', '80',             # <-- FIX: Set container port
+        '--allow-unauthenticated'
+        # --- FIX: Removed unnecessary set-env-vars ---
       ]
 
 # -----------------------------
@@ -82,3 +85,5 @@ secrets:
     MONGO_URI: projects/$PROJECT_ID/secrets/MONGO_URI/versions/latest
     VITE_STRIPE_PUBLISHABLE_KEY: projects/$PROJECT_ID/secrets/VITE_STRIPE_PUBLISHABLE_KEY/versions/latest
     VITE_PAYHERE_MERCHANT_ID: projects/$PROJECT_ID/secrets/VITE_PAYHERE_MERCHANT_ID/versions/latest
+    # --- FIX: Added VITE_API_BASE to the list ---
+    VITE_API_BASE: projects/$PROJECT_ID/secrets/VITE_API_BASE/versions/latest
