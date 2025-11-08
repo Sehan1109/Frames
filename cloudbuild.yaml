@@ -1,0 +1,82 @@
+# cloudbuild.yaml (secure version)
+steps:
+  # -----------------------------
+  # Build and push backend image
+  # -----------------------------
+  - name: 'gcr.io/cloud-builders/docker'
+    secretEnv: ['MONGO_URI']
+    args:
+      [
+        'build',
+        '-f', 'backend/back.dockerfile',
+        '-t', 'gcr.io/$PROJECT_ID/frames-backend:latest',
+        './backend'
+      ]
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      ['push', 'gcr.io/$PROJECT_ID/frames-backend:latest']
+
+  # -----------------------------
+  # Build and push frontend image
+  # -----------------------------
+  - name: 'gcr.io/cloud-builders/docker'
+    secretEnv: ['VITE_STRIPE_PUBLISHABLE_KEY', 'VITE_PAYHERE_MERCHANT_ID', 'VITE_API_BASE']
+    args:
+      [
+        'build',
+        '-f', 'frontend/front.dockerfile',
+        '-t', 'gcr.io/$PROJECT_ID/frames-frontend:latest',
+        './frontend'
+      ]
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      ['push', 'gcr.io/$PROJECT_ID/frames-frontend:latest']
+
+  # -----------------------------
+  # Deploy backend to Cloud Run
+  # -----------------------------
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    secretEnv: ['MONGO_URI']
+    args:
+      [
+        'run', 'deploy', 'frames-backend',
+        '--image', 'gcr.io/$PROJECT_ID/frames-backend:latest',
+        '--platform', 'managed',
+        '--region', 'asia-south1',
+        '--allow-unauthenticated',
+        '--set-env-vars', 'MONGO_URI=$MONGO_URI,PORT=5000'
+      ]
+
+  # -----------------------------
+  # Deploy frontend to Cloud Run
+  # -----------------------------
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    secretEnv: ['VITE_STRIPE_PUBLISHABLE_KEY', 'VITE_PAYHERE_MERCHANT_ID']
+    args:
+      [
+        'run', 'deploy', 'frames-frontend',
+        '--image', 'gcr.io/$PROJECT_ID/frames-frontend:latest',
+        '--platform', 'managed',
+        '--region', 'asia-south1',
+        '--allow-unauthenticated',
+        '--set-env-vars', 'VITE_API_BASE=https://frames-backend-xxxx.a.run.app,VITE_STRIPE_PUBLISHABLE_KEY=$VITE_STRIPE_PUBLISHABLE_KEY,VITE_PAYHERE_MERCHANT_ID=$VITE_PAYHERE_MERCHANT_ID'
+      ]
+
+# -----------------------------
+# Declare the built images
+# -----------------------------
+images:
+  - 'gcr.io/$PROJECT_ID/frames-backend:latest'
+  - 'gcr.io/$PROJECT_ID/frames-frontend:latest'
+
+# -----------------------------
+# Secrets mapping
+# -----------------------------
+secrets:
+- kmsKeyName: projects/$PROJECT_ID/locations/global/keyRings/cloud-build/cryptoKeys/cloud-build-key
+  secretEnv:
+    MONGO_URI: projects/$PROJECT_ID/secrets/MONGO_URI/versions/latest
+    VITE_STRIPE_PUBLISHABLE_KEY: projects/$PROJECT_ID/secrets/VITE_STRIPE_PUBLISHABLE_KEY/versions/latest
+    VITE_PAYHERE_MERCHANT_ID: projects/$PROJECT_ID/secrets/VITE_PAYHERE_MERCHANT_ID/versions/latest
