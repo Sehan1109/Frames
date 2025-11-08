@@ -4,7 +4,7 @@ import fs from "fs";
 import path from "path";
 import Item from "../models/Item.js";
 import { addItem, getItems, getItemsByCategory } from "../controllers/itemController.js";
-import { protect } from "../middlewares/authMiddleware.js";
+import { protect, adminOnly } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
@@ -25,6 +25,7 @@ const upload = multer({ storage });
 router.post(
     "/",
     protect,
+    adminOnly,
     upload.fields([
         { name: "coverImage", maxCount: 1 },
         { name: "images" },
@@ -165,7 +166,7 @@ function safeDelete(filePath) {
     }
 }
 
-router.delete("/:id", protect, async (req, res) => {
+router.delete("/:id", protect, adminOnly, async (req, res) => {
     try {
         const item = await Item.findById(req.params.id);
         if (!item) return res.status(404).json({ message: "Item not found" });
@@ -190,6 +191,7 @@ router.delete("/:id", protect, async (req, res) => {
 router.put(
     "/:id",
     protect,
+    adminOnly,
     upload.fields([{ name: "coverImage" }, { name: "images" }]),
     async (req, res) => {
         try {

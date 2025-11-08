@@ -1,10 +1,6 @@
 import Item from "../models/Item.js";
 
 export const addItem = async (req, res) => {
-  if (!req.isAdmin) {
-    return res.status(403).json({ message: "Only admin can add items" });
-  }
-
   try {
     const { title, description, price, category } = req.body;
 

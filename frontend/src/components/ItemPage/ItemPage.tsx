@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
@@ -7,9 +7,12 @@ import StarRating from "../StarRating/StarRating";
 import ReviewModal from "../ReviewModal/ReviewModal";
 import { Globe, CheckCircle, Gift, Lock } from "lucide-react";
 import { useCart } from "../Context/CartContext";
-import OrderModal from "../Modal/OrderModal";
 
 const API_BASE = import.meta.env.VITE_API_BASE as string;
+// Get PayHere Merchant ID and App URL from .env
+const PAYHERE_MERCHANT_ID = import.meta.env.VITE_PAYHERE_MERCHANT_ID;
+const APP_URL = import.meta.env.VITE_APP_URL || "http://localhost:5173";
+const PAYHERE_URL = "https://sandbox.payhere.lk/pay/checkout"; // Use sandbox for testing
 
 interface Item {
   _id: string;
@@ -43,10 +46,10 @@ export default function ItemPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { addToCart } = useCart();
-  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
-
+  const navigate = useNavigate();
   const [mainImage, setMainImage] = useState<string | null>(null);
 
+  // === NEW PAYHERE SUBMIT LOGIC ===
   const handleOrderSubmit = async (orderData: {
     name: string;
     address: string;
@@ -55,23 +58,103 @@ export default function ItemPage() {
   }) => {
     if (!item) return;
 
+    // Step 1: Create the 'pending' order in our database
+    let newOrder;
     try {
-      await axios.post(
+      const res = await axios.post<{
+        order: { _id: string; totalAmount: number };
+      }>(
         `${API_BASE}/orders`,
         {
           productId: item._id,
           ...orderData,
           price: item.price * orderData.quantity,
+          // Note: The 'status' defaults to 'pending' in your Order.js model
         },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
-      alert("Order placed successfully ✅");
+
+      // Ensure the backend returns the created order object
+      if (!res.data || !res.data.order || !res.data.order._id) {
+        throw new Error("Order was created but no order data was returned.");
+      }
+      newOrder = res.data.order;
     } catch (err) {
-      alert("Failed to place order ❌");
+      console.error("Failed to create pending order", err);
+      alert("Failed to create order ❌. Please try again.");
+      return; // Stop if we can't create the pending order
     }
+
+    // Step 2: Get PayHere hash for the *newly created order*
+    const order_id = newOrder._id; // This is the unique ID from our DB
+    const amount = newOrder.totalAmount;
+    const currency = "LKR"; // PayHere primarily uses LKR
+
+    let hash;
+    try {
+      interface HashResponse {
+        hash: string;
+      }
+      const hashRes = await axios.post<HashResponse>(
+        `${API_BASE}/payments/payhere/generate-hash`,
+        {
+          order_id,
+          amount,
+          currency,
+        }
+      );
+      hash = hashRes.data.hash;
+    } catch (err) {
+      console.error("Failed to get PayHere hash", err);
+      alert("Failed to connect to payment gateway. Please try again.");
+      // You might want to delete the pending order here, or run a cleanup job later
+      return;
+    }
+
+    // Step 3: Dynamically create and submit the PayHere form
+    console.log("Redirecting to PayHere...");
+    const payhereForm = document.createElement("form");
+    payhereForm.method = "POST";
+    payhereForm.action = PAYHERE_URL;
+    payhereForm.style.display = "none"; // Hide the form
+
+    // All fields required by PayHere
+    const inputs = {
+      merchant_id: PAYHERE_MERCHANT_ID,
+      return_url: `${APP_URL}/success?order_id=${order_id}`, // We'll create this page
+      cancel_url: `${APP_URL}/cancel`, // We'll create this page
+      notify_url: `${API_BASE}/payments/payhere/notify`,
+      order_id,
+      items: item.title,
+      amount: amount.toFixed(2),
+      currency,
+      first_name: orderData.name,
+      last_name: "", // Required, can be empty
+      email: "user@example.com", // Get from user profile or use a placeholder
+      phone: orderData.whatsapp,
+      address: orderData.address,
+      city: "Colombo", // You should get this from the user
+      country: "Sri Lanka",
+      hash,
+    };
+
+    // Add inputs to form
+    for (const [key, value] of Object.entries(inputs)) {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = key;
+      input.value = value as string;
+      payhereForm.appendChild(input);
+    }
+
+    // Add form to DOM, submit it, and then remove it
+    document.body.appendChild(payhereForm);
+    payhereForm.submit();
+    document.body.removeChild(payhereForm);
   };
+  // === END OF NEW LOGIC ===
 
   useEffect(() => {
     const fetchData = async () => {
@@ -104,17 +187,17 @@ export default function ItemPage() {
     <div className="flex flex-col min-h-screen bg-gray-50">
       <Navbar />
 
-      <main className="flex-1 py-10 px-4">
+      <main className="flex-1 py-32 px-4">
         <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-lg p-6 md:p-12">
-          {/* Responsive Grid */}
+          {/* Responsive Grid (Unchanged) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Left: Image Gallery */}
+            {/* Left: Images (Unchanged) */}
             <div className="flex flex-col items-center">
               {mainImage && (
                 <img
                   src={mainImage}
                   alt={item.title}
-                  className="w-full max-w-md h-96 object-cover rounded-xl shadow-md mb-4 transition-transform hover:scale-105"
+                  className="w-full max-w-md h-96 object-cover rounded-xl shadow-md mb-4 transition-transform hover:scale-105 text-black"
                 />
               )}
               <div className="grid grid-cols-4 gap-2 w-full max-w-md">
@@ -138,10 +221,12 @@ export default function ItemPage() {
               </div>
             </div>
 
-            {/* Right: Details */}
+            {/* Right: Details (Unchanged) */}
             <div className="flex flex-col justify-between">
               <div>
-                <h1 className="text-3xl font-extrabold mb-4">{item.title}</h1>
+                <h1 className="text-3xl font-extrabold mb-4 text-black">
+                  {item.title}
+                </h1>
                 <div
                   className="flex items-center gap-2 mb-4 cursor-pointer"
                   onClick={() => setIsModalOpen(true)}
@@ -191,7 +276,16 @@ export default function ItemPage() {
                 </button>
                 <button
                   className="w-full sm:w-auto px-6 py-3 rounded-lg bg-black text-white hover:bg-gray-800 transition font-semibold"
-                  onClick={() => setIsOrderModalOpen(true)}
+                  onClick={() => {
+                    addToCart({
+                      _id: item._id,
+                      title: item.title,
+                      price: item.price,
+                      coverImage: item.coverImage,
+                      quantity: 1,
+                    });
+                    navigate("/cart");
+                  }}
                 >
                   Order
                 </button>
@@ -199,7 +293,7 @@ export default function ItemPage() {
             </div>
           </div>
 
-          {/* Reviews Section */}
+          {/* Reviews Section (Unchanged) */}
           <div className="mt-12">
             <h2 className="text-2xl font-bold mb-6">Customer Reviews</h2>
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
@@ -236,19 +330,42 @@ export default function ItemPage() {
               ))}
             </div>
           </div>
+
+          {/* --- MODIFIED SECTION --- */}
+          {/* This section now displays all images in a simple grid */}
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold mb-6 text-center">
+              All Item Images
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {/* Display Cover Image */}
+              {item.coverImage && (
+                <img
+                  src={`${API_BASE.replace("/api", "")}/uploads/${
+                    item.coverImage
+                  }`}
+                  alt={item.title}
+                  className="w-full h-48 object-cover rounded-xl shadow-md transition-transform hover:scale-105"
+                />
+              )}
+              {/* Display all other images */}
+              {item.images?.map((img, idx) => (
+                <img
+                  key={idx}
+                  src={`${API_BASE.replace("/api", "")}/uploads/${img}`}
+                  alt={`gallery-thumb-${idx}`}
+                  className="w-full h-48 object-cover rounded-xl shadow-md transition-transform hover:scale-105"
+                />
+              ))}
+            </div>
+          </div>
+          {/* --- END OF MODIFIED SECTION --- */}
         </div>
       </main>
 
       <Footer />
 
-      <OrderModal
-        isOpen={isOrderModalOpen}
-        onClose={() => setIsOrderModalOpen(false)}
-        onSubmit={handleOrderSubmit}
-        showQuantity={true}
-      />
-
-      {/* Review Modal */}
+      {/* Review Modal (Unchanged) */}
       <ReviewModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

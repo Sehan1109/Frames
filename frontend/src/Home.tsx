@@ -3,7 +3,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { Link, useLocation } from "react-router-dom";
 import axios from "axios";
-import { motion } from "framer-motion"; // 👈 for animations
+import { motion } from "framer-motion";
 import image1 from "./assets/image1.png";
 import image2 from "./assets/image2.png";
 import image3 from "./assets/image3.png";
@@ -69,7 +69,7 @@ const Home = () => {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative flex flex-col md:flex-row items-center justify-center px-6 md:px-20 py-24 bg-gradient-to-r from-black via-gray-900 to-black text-white overflow-hidden">
+      <section className="relative flex flex-col md:flex-row items-center justify-center px-6 md:px-20 py-44 bg-white text-black overflow-hidden">
         <motion.img
           src={image7}
           alt="Hero"
@@ -87,7 +87,7 @@ const Home = () => {
           <h2 className="text-5xl md:text-6xl font-extrabold tracking-tight">
             Fujo <span className="text-yellow-400">Frame</span>
           </h2>
-          <p className="mt-4 text-lg text-gray-300 max-w-lg">
+          <p className="mt-4 text-lg text-gray-800 max-w-lg">
             Discover rare retro tech and modern classics, all in one place.
           </p>
           <Link
@@ -100,7 +100,7 @@ const Home = () => {
       </section>
 
       {/* Categories */}
-      <section id="categories" className="py-20 bg-gray-100">
+      <section id="categories" className="py-20 bg-black text-white">
         <h2 className="text-center text-3xl font-bold mb-10">Categories</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-6xl mx-auto px-6">
           {[
@@ -113,20 +113,27 @@ const Home = () => {
               key={cat.name}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.2 }}
               viewport={{ once: true }}
+              transition={{ delay: i * 0.2, duration: 0.3, ease: "easeInOut" }}
+              whileHover={{ scale: 1.05, y: -10 }}
             >
               <Link
                 to={`/category/${cat.name}`}
-                className="relative group rounded-2xl overflow-hidden shadow-lg"
+                // --- MODIFICATION: Increased shadow ---
+                className="relative group rounded-2xl overflow-hidden shadow-xl"
               >
                 <img
                   src={cat.img}
                   alt={cat.name}
-                  className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
+                  className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500 bg-gray-200 rounded-2xl"
                 />
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
                   <p className="text-white text-xl font-semibold">{cat.name}</p>
+                </div>
+                <div className="p-4">
+                  <p className="text-gray-100 text-xl font-semibold text-center">
+                    {cat.name}
+                  </p>
                 </div>
               </Link>
             </motion.div>
@@ -183,10 +190,7 @@ const Home = () => {
       </section>
 
       {/* Top Rated */}
-      <section
-        id="top-rated"
-        className="py-20 bg-gradient-to-r from-black via-gray-900 to-black text-white"
-      >
+      <section id="top-rated" className="py-20 bg-black text-white">
         <h2 className="text-center text-3xl font-bold mb-10">Top Rated</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 max-w-6xl mx-auto px-6">
           {topRatedItems.map((item, i) => (
@@ -282,7 +286,7 @@ const Home = () => {
           <div className="flex justify-center mt-8">
             <button
               onClick={() => setShowAllReviews(!showAllReviews)}
-              className="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition"
+              className="px-6 py-3 bg-yellow-400 text-black font-bold rounded-lg hover:bg-gray-800 transition"
             >
               {showAllReviews ? "Show Less" : "Show More"}
             </button>
@@ -291,10 +295,7 @@ const Home = () => {
       </section>
 
       {/* About Us */}
-      <section
-        id="about"
-        className="py-20 bg-gradient-to-r from-black via-gray-900 to-black text-white px-8 md:px-20"
-      >
+      <section id="about" className="py-20 bg-black text-white px-8 md:px-20">
         <h2 className="text-center text-3xl font-bold mb-6">About Us</h2>
         <p className="max-w-4xl mx-auto text-center text-lg text-gray-300 leading-relaxed">
           “For me, there is something indulgent about old technology. The

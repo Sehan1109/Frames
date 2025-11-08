@@ -9,6 +9,10 @@ import TopRatedPage from "./components/ItemPage/TopRatedPage";
 import CartPage from "./components/CartPage/CartPage";
 import Order from "./components/Admin/Order";
 
+// Import new payment status pages
+import PaymentSuccess from "./components/CartPage/PaymentSuccess";
+import PaymentCancel from "./components/CartPage/PaymentCancel";
+
 function App() {
   return (
     <Routes>
@@ -20,6 +24,10 @@ function App() {
       <Route path="/top-rated" element={<TopRatedPage />} />
       <Route path="/cart" element={<CartPage />} />
       <Route path="/admin/orders" element={<Order />} />
+
+      {/* New routes for PayHere return */}
+      <Route path="/success" element={<PaymentSuccess />} />
+      <Route path="/cancel" element={<PaymentCancel />} />
     </Routes>
   );
 }
