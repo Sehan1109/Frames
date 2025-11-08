@@ -24,13 +24,15 @@ steps:
     args:
       [
         'build',
+        # --- ADD THESE LINES ---
+        '--build-arg', 'VITE_API_BASE=${VITE_API_BASE}',
+        '--build-arg', 'VITE_PAYHERE_MERCHANT_ID=${VITE_PAYHERE_MERCHANT_ID}',
+        '--build-arg', 'VITE_STRIPE_PUBLISHABLE_KEY=${VITE_STRIPE_PUBLISHABLE_KEY}',
+        # ------------------------
         '-f', 'frontend/front.dockerfile',
         '-t', 'gcr.io/$PROJECT_ID/frames-frontend:latest',
         './frontend'
       ]
-  - name: 'gcr.io/cloud-builders/docker'
-    args:
-      ['push', 'gcr.io/$PROJECT_ID/frames-frontend:latest']
 
   # -----------------------------
   # Deploy backend to Cloud Run
