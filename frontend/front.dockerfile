@@ -1,29 +1,33 @@
-# Stage 1: Build
+# -------------------------
+# Stage 1: Build Frontend
+# -------------------------
 FROM node:18-alpine AS builder
 
 WORKDIR /FRAMES/frontend
 
-COPY package.json package-lock.json ./
+# Copy package.json and package-lock.json
+COPY package*.json ./
+
+# Install dependencies — ignore peer dependency conflicts
 RUN npm install --legacy-peer-deps
 
+# Copy the rest of the code
 COPY . .
 
-ARG VITE_API_BASE
-ARG VITE_PAYHERE_MERCHANT_ID
-ARG VITE_STRIPE_PUBLISHABLE_KEY  # <-- ADD THIS
-
-ENV VITE_API_BASE=$VITE_API_BASE
-ENV VITE_PAYHERE_MERCHANT_ID=$VITE_PAYHERE_MERCHANT_ID
-ENV VITE_STRIPE_PUBLISHABLE_KEY=$VITE_STRIPE_PUBLISHABLE_KEY
-
+# Build Vite project
 RUN npm run build
 
-# Stage 2: Serve with nginx
-FROM nginx:1.27-alpine
 
-RUN rm -rf /usr/share/nginx/html/*
+# -------------------------
+# Stage 2: Serve build via NGINX
+# -------------------------
+FROM nginx:stable-alpine
 
+# Copy built files from builder stage
 COPY --from=builder /FRAMES/frontend/dist /usr/share/nginx/html
+
+# Remove default config and replace with custom one
+RUN rm /etc/nginx/conf.d/default.conf
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
