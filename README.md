@@ -1,33 +1,31 @@
-# 📝 To-Do Web App
+# 🖼️ FujoFrames
 
-A modern To-Do application built with **React**, **TypeScript**, **Vite**, **Firebase**, and **Tailwind CSS**.  
-Add, edit, delete, and manage your daily tasks with real-time sync and a clean, responsive UI.
-
-🔗 **Live Demo:** https://stodo-webapp.netlify.app/
+A full-stack e-commerce platform built with the **MERN stack** for selling premium disassembled tech frames.  
+Features a modern UI, secure authentication, admin dashboard, and integrated online payments.
 
 ---
 
 ## 🚀 Tech Stack
-- **React + TypeScript + Vite**
-- **Firebase** (Authentication + Firestore)
-- **Tailwind CSS** for styling
-- **ESLint** with React & TypeScript rules
+- **Frontend:** React, Tailwind CSS  
+- **Backend:** Node.js, Express.js  
+- **Database:** MongoDB  
+- **Payments:** PayHere (Sandbox)  
 
 ---
 
-## ⚙️ Features
-- ✔️ Add new tasks  
-- ✔️ Edit or delete tasks  
-- ✔️ Mark tasks as completed  
-- ✔️ Real-time database sync  
-- ✔️ Responsive & clean UI  
+## ⭐ Features
+- 🛒 Product browsing & detailed views  
+- 🔐 User authentication (login & signup)  
+- 🛍️ Add to cart & real-time cart updates  
+- 💳 Secure checkout with PayHere  
+- 🛠️ Admin dashboard for managing products, orders & users  
+- 📱 Fully responsive design  
 
 ---
 
 ## 📦 Installation
-
 ```bash
-git clone https://github.com/Sehan1109/Frames.git
-cd Frames
+git clone https://github.com/Sehan1109/FujoFrames.git
+cd FujoFrames
 npm install
 npm run dev
