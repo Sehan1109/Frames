@@ -112,11 +112,20 @@ function isAxiosError(
 
 // **CHANGED**: Component now accepts props
 const Login: React.FC<AuthProps> = ({ onSuccess }) => {
+  // Login states
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+
+  // Forgot Password states
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotError, setForgotError] = useState<string | null>(null);
+  const [forgotSuccess, setForgotSuccess] = useState<string | null>(null);
+
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -131,11 +140,11 @@ const Login: React.FC<AuthProps> = ({ onSuccess }) => {
       });
 
       localStorage.setItem("token", res.data.token);
-      localStorage.setItem("isAdmin", String(res.data.isAdmin)); // **CHANGED**: Call onSuccess to close modal and update Navbar state
+      localStorage.setItem("isAdmin", String(res.data.isAdmin));
 
-      onSuccess(); // Navigate *after* success
+      onSuccess(); // Call onSuccess to close modal and update Navbar state
 
-      navigate(res.data.isAdmin ? "/admin" : "/"); // **REMOVED**: window.location.reload();
+      navigate(res.data.isAdmin ? "/admin" : "/"); // Navigate *after* success
     } catch (err: unknown) {
       if (isAxiosError(err)) {
         setError(
@@ -150,90 +159,212 @@ const Login: React.FC<AuthProps> = ({ onSuccess }) => {
     }
   };
 
+  // --- NEW: Forgot Password Handler ---
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotLoading(true);
+    setForgotError(null);
+    setForgotSuccess(null);
+
+    try {
+      // Assume an endpoint for forgot password
+      await axios.post(`${API_BASE}/auth/forgot-password`, {
+        email: forgotEmail,
+      });
+      // Show a generic success message to prevent email enumeration
+      setForgotSuccess(
+        "If an account with that email exists, a password reset link has been sent."
+      );
+    } catch (err: unknown) {
+      if (isAxiosError(err)) {
+        setForgotError(
+          err.response?.data?.message ||
+            "Failed to send reset link. Please try again later."
+        );
+      } else {
+        setForgotError("An unexpected error occurred. Please try again.");
+      }
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
   return (
     <div className="w-full">
-      <h2 className="text-3xl font-bold text-center mb-6 text-white">
-        Welcome Back
-      </h2>
+      {isForgotPassword ? (
+        // --- FORGOT PASSWORD FORM ---
+        <>
+          <h2 className="text-3xl font-bold text-center mb-6 text-white">
+            Reset Password
+          </h2>
+          <form onSubmit={handleForgotPassword} className="space-y-4">
+            <AlertMessage type="error" message={forgotError} />
+            <AlertMessage type="success" message={forgotSuccess} />
 
-      <form onSubmit={handleLogin} className="space-y-4">
-        <AlertMessage type="error" message={error} />       {" "}
-        <div>
-          <label className="block text-sm font-medium text-gray-400 mb-1">
-            Email
-          </label>
-          <input
-            type="email"
-            placeholder="you@example.com"
-            value={email}
-            required
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 text-black bg-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all"
-          />
-        </div>
-        <div>
-          <div className="flex justify-between items-center mb-1">
-            <label className="block text-sm font-medium text-gray-400">
-              Password
-            </label>
-            <button
-              type="button"
-              className="text-sm font-medium text-yellow-500 hover:text-yellow-600"
-            >
-              Forgot password?
-            </button>
-          </div>
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="••••••••"
-              value={password}
-              required
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 text-black bg-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all pr-10"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-gray-500 hover:text-yellow-600"
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? <EyeSlashIcon /> : <EyeIcon />}
-            </button>
-          </div>
-        </div>
-        <div className="pt-2">
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 rounded-lg font-semibold bg-yellow-400 text-black hover:bg-yellow-500 transition-all duration-300 flex items-center justify-center disabled:opacity-60"
-          >
-            {loading ? (
-              <svg
-                className="animate-spin h-5 w-5 mr-2 text-black"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
+            {/* Only show form if success message isn't active */}
+            {!forgotSuccess && (
+              <>
+                <p className="text-gray-400 text-sm text-center -mt-2 mb-2">
+                  Enter your email and we'll send you a link to reset your
+                  password.
+                </p>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="you@example.com"
+                    value={forgotEmail}
+                    required
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 text-black bg-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all"
+                  />
+                </div>
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={forgotLoading}
+                    className="w-full py-3 rounded-lg font-semibold bg-yellow-400 text-black hover:bg-yellow-500 transition-all duration-300 flex items-center justify-center disabled:opacity-60"
+                  >
+                    {forgotLoading ? (
+                      <svg
+                        className="animate-spin h-5 w-5 mr-2 text-black"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
+                      </svg>
+                    ) : null}
+                    {forgotLoading ? "Sending..." : "Send Reset Link"}
+                  </button>
+                </div>
+              </>
+            )}
+
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsForgotPassword(false);
+                  // Clear messages when switching back
+                  setForgotError(null);
+                  setForgotSuccess(null);
+                }}
+                className="w-full text-sm font-medium text-yellow-500 hover:text-yellow-600 text-center"
               >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
+                Back to Login
+              </button>
+            </div>
+          </form>
+        </>
+      ) : (
+        // --- LOGIN FORM ---
+        <>
+          <h2 className="text-3xl font-bold text-center mb-6 text-white">
+            Welcome Back
+          </h2>
+
+          <form onSubmit={handleLogin} className="space-y-4">
+            <AlertMessage type="error" message={error} />{" "}
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                required
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 text-black bg-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all"
+              />
+            </div>
+            <div>
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-sm font-medium text-gray-400">
+                  Password
+                </label>
+                {/* --- UPDATED BUTTON --- */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsForgotPassword(true);
+                    setForgotEmail(email); // Pre-fill email from login form
+                    setError(null); // Clear login error
+                  }}
+                  className="text-sm font-medium text-yellow-500 hover:text-yellow-600"
+                >
+                  Forgot password?
+                </button>
+                {/* --- END UPDATE --- */}
+              </div>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={password}
+                  required
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 text-black bg-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all pr-10"
                 />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                />
-              </svg>
-            ) : null}
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </div>
-      </form>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-gray-500 hover:text-yellow-600"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeSlashIcon /> : <EyeIcon />}
+                </button>
+              </div>
+            </div>
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 rounded-lg font-semibold bg-yellow-400 text-black hover:bg-yellow-500 transition-all duration-300 flex items-center justify-center disabled:opacity-60"
+              >
+                {loading ? (
+                  <svg
+                    className="animate-spin h-5 w-5 mr-2 text-black"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                ) : null}
+                {loading ? "Logging in..." : "Login"}
+              </button>
+            </div>
+          </form>
+        </>
+      )}
     </div>
   );
 };
