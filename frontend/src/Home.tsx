@@ -32,6 +32,7 @@ interface Review {
 }
 
 const Home = () => {
+  // Initialize with empty arrays to prevent initial render crash
   const [latestItems, setLatestItems] = useState<Item[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [showAllReviews, setShowAllReviews] = useState(false);
@@ -42,15 +43,23 @@ const Home = () => {
     const fetchData = async () => {
       try {
         const [latest, reviewData, topRated] = await Promise.all([
-          axios.get<Item[]>(`${API_BASE}/items/latest`),
-          axios.get<Review[]>(`${API_BASE}/items/reviews/all`),
-          axios.get<Item[]>(`${API_BASE}/items/top/rated/all`),
+          axios.get(`${API_BASE}/items/latest`),
+          axios.get(`${API_BASE}/items/reviews/all`),
+          axios.get(`${API_BASE}/items/top/rated/all`),
         ]);
-        setLatestItems(latest.data);
-        setReviews(reviewData.data);
-        setTopRatedItems(topRated.data);
+
+        // --- FIX START: Check if data is an array before setting state ---
+        // If the API returns an error object, we default to an empty array []
+        setLatestItems(Array.isArray(latest.data) ? latest.data : []);
+        setReviews(Array.isArray(reviewData.data) ? reviewData.data : []);
+        setTopRatedItems(Array.isArray(topRated.data) ? topRated.data : []);
+        // --- FIX END ---
       } catch (err) {
         console.error("Error fetching home data:", err);
+        // Optionally set empty arrays here just to be safe
+        setLatestItems([]);
+        setReviews([]);
+        setTopRatedItems([]);
       }
     };
     fetchData();
@@ -119,7 +128,6 @@ const Home = () => {
             >
               <Link
                 to={`/category/${cat.name}`}
-                // --- MODIFICATION: Increased shadow ---
                 className="relative group rounded-2xl overflow-hidden shadow-xl"
               >
                 <img
@@ -145,7 +153,8 @@ const Home = () => {
       <section id="new-ones" className="py-20 bg-white">
         <h2 className="text-center text-3xl font-bold mb-10">New Ones</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 max-w-6xl mx-auto px-6">
-          {latestItems.map((item, i) => (
+          {/* FIX: added ?. to prevent crash if array is undefined */}
+          {latestItems?.map((item, i) => (
             <motion.div
               key={item._id}
               initial={{ opacity: 0, scale: 0.9 }}
@@ -193,7 +202,8 @@ const Home = () => {
       <section id="top-rated" className="py-20 bg-black text-white">
         <h2 className="text-center text-3xl font-bold mb-10">Top Rated</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 max-w-6xl mx-auto px-6">
-          {topRatedItems.map((item, i) => (
+          {/* FIX: added ?. to prevent crash if array is undefined */}
+          {topRatedItems?.map((item, i) => (
             <motion.div
               key={item._id}
               initial={{ opacity: 0, scale: 0.9 }}
@@ -228,14 +238,12 @@ const Home = () => {
           ))}
         </div>
         <div className="flex justify-center mt-6">
-          {" "}
           <Link
             to="/top-rated"
             className="px-6 py-2 bg-yellow-400 text-black font-semibold rounded-lg hover:bg-gray-200 transition"
           >
-            {" "}
-            More →{" "}
-          </Link>{" "}
+            More →
+          </Link>
         </div>
       </section>
 
@@ -245,7 +253,13 @@ const Home = () => {
           What Our Customers Say
         </h2>
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-6">
-          {(showAllReviews ? reviews : reviews.slice(0, 3)).map((review, i) => (
+          {/* FIX: Ensure reviews exists before slicing or mapping */}
+          {(reviews && reviews.length > 0
+            ? showAllReviews
+              ? reviews
+              : reviews.slice(0, 3)
+            : []
+          ).map((review, i) => (
             <motion.div
               key={review._id}
               className="bg-white rounded-xl shadow hover:shadow-lg p-6 flex flex-col"
@@ -282,7 +296,7 @@ const Home = () => {
             </motion.div>
           ))}
         </div>
-        {reviews.length > 3 && (
+        {reviews && reviews.length > 3 && (
           <div className="flex justify-center mt-8">
             <button
               onClick={() => setShowAllReviews(!showAllReviews)}
