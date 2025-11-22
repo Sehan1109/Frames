@@ -32,7 +32,6 @@ interface Review {
 }
 
 const Home = () => {
-  // Initialize with empty arrays to prevent initial render crash
   const [latestItems, setLatestItems] = useState<Item[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [showAllReviews, setShowAllReviews] = useState(false);
@@ -48,23 +47,22 @@ const Home = () => {
           axios.get(`${API_BASE}/items/top/rated/all`),
         ]);
 
-        // --- FIX START: Check if data is an array before setting state ---
-        // If the API returns an error object, we default to an empty array []
+        // DEBUG: Check your console to see exactly what the API returns
+        console.log("Latest Data:", latest.data);
+        console.log("Review Data:", reviewData.data);
+        console.log("Top Rated Data:", topRated.data);
+
+        // Safe State Setting
         setLatestItems(Array.isArray(latest.data) ? latest.data : []);
         setReviews(Array.isArray(reviewData.data) ? reviewData.data : []);
         setTopRatedItems(Array.isArray(topRated.data) ? topRated.data : []);
-        // --- FIX END ---
       } catch (err) {
         console.error("Error fetching home data:", err);
-        // Optionally set empty arrays here just to be safe
-        setLatestItems([]);
-        setReviews([]);
-        setTopRatedItems([]);
+        // No need to reset to [] here as they are initialized as []
       }
     };
     fetchData();
 
-    // handle scroll from Navbar
     if (location.state?.scrollTo) {
       const section = document.getElementById(location.state.scrollTo);
       if (section) {
@@ -72,6 +70,13 @@ const Home = () => {
       }
     }
   }, [location.state]);
+
+  // --- LOGIC FIX: Calculate displayed reviews cleanly outside JSX ---
+  // Ensure 'reviews' is an array before slicing
+  const safeReviews = Array.isArray(reviews) ? reviews : [];
+  const displayedReviews = showAllReviews
+    ? safeReviews
+    : safeReviews.slice(0, 3);
 
   return (
     <div className="w-full min-h-screen bg-white text-black flex flex-col">
@@ -153,8 +158,8 @@ const Home = () => {
       <section id="new-ones" className="py-20 bg-white">
         <h2 className="text-center text-3xl font-bold mb-10">New Ones</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 max-w-6xl mx-auto px-6">
-          {/* FIX: added ?. to prevent crash if array is undefined */}
-          {latestItems?.map((item, i) => (
+          {/* FIX: Force array check inline as a failsafe */}
+          {(Array.isArray(latestItems) ? latestItems : []).map((item, i) => (
             <motion.div
               key={item._id}
               initial={{ opacity: 0, scale: 0.9 }}
@@ -202,40 +207,42 @@ const Home = () => {
       <section id="top-rated" className="py-20 bg-black text-white">
         <h2 className="text-center text-3xl font-bold mb-10">Top Rated</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 max-w-6xl mx-auto px-6">
-          {/* FIX: added ?. to prevent crash if array is undefined */}
-          {topRatedItems?.map((item, i) => (
-            <motion.div
-              key={item._id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ delay: i * 0.1 }}
-              viewport={{ once: true }}
-            >
-              <Link
-                to={`/item/${item._id}`}
-                className="bg-white text-black rounded-2xl shadow hover:shadow-xl overflow-hidden flex flex-col"
+          {/* FIX: Force array check inline as a failsafe */}
+          {(Array.isArray(topRatedItems) ? topRatedItems : []).map(
+            (item, i) => (
+              <motion.div
+                key={item._id}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.1 }}
+                viewport={{ once: true }}
               >
-                {item.coverImage && (
-                  <img
-                    src={`${API_BASE.replace("/api", "")}/uploads/${
-                      item.coverImage
-                    }`}
-                    alt={item.title}
-                    className="w-full h-48 object-cover"
-                  />
-                )}
-                <div className="p-4 flex flex-col flex-grow">
-                  <h3 className="font-semibold text-lg">{item.title}</h3>
-                  <p className="text-gray-600 text-sm flex-grow">
-                    {item.description}
-                  </p>
-                  <span className="text-gray-900 font-bold mt-2">
-                    ${item.price.toFixed(2)}
-                  </span>
-                </div>
-              </Link>
-            </motion.div>
-          ))}
+                <Link
+                  to={`/item/${item._id}`}
+                  className="bg-white text-black rounded-2xl shadow hover:shadow-xl overflow-hidden flex flex-col"
+                >
+                  {item.coverImage && (
+                    <img
+                      src={`${API_BASE.replace("/api", "")}/uploads/${
+                        item.coverImage
+                      }`}
+                      alt={item.title}
+                      className="w-full h-48 object-cover"
+                    />
+                  )}
+                  <div className="p-4 flex flex-col flex-grow">
+                    <h3 className="font-semibold text-lg">{item.title}</h3>
+                    <p className="text-gray-600 text-sm flex-grow">
+                      {item.description}
+                    </p>
+                    <span className="text-gray-900 font-bold mt-2">
+                      ${item.price.toFixed(2)}
+                    </span>
+                  </div>
+                </Link>
+              </motion.div>
+            )
+          )}
         </div>
         <div className="flex justify-center mt-6">
           <Link
@@ -253,13 +260,8 @@ const Home = () => {
           What Our Customers Say
         </h2>
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-6">
-          {/* FIX: Ensure reviews exists before slicing or mapping */}
-          {(reviews && reviews.length > 0
-            ? showAllReviews
-              ? reviews
-              : reviews.slice(0, 3)
-            : []
-          ).map((review, i) => (
+          {/* FIX: Use the calculated 'displayedReviews' variable */}
+          {displayedReviews.map((review, i) => (
             <motion.div
               key={review._id}
               className="bg-white rounded-xl shadow hover:shadow-lg p-6 flex flex-col"
@@ -296,7 +298,7 @@ const Home = () => {
             </motion.div>
           ))}
         </div>
-        {reviews && reviews.length > 3 && (
+        {safeReviews.length > 3 && (
           <div className="flex justify-center mt-8">
             <button
               onClick={() => setShowAllReviews(!showAllReviews)}
