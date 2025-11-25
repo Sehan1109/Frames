@@ -47,18 +47,11 @@ const Home = () => {
           axios.get(`${API_BASE}/items/top/rated/all`),
         ]);
 
-        // DEBUG: Check your console to see exactly what the API returns
-        console.log("Latest Data:", latest.data);
-        console.log("Review Data:", reviewData.data);
-        console.log("Top Rated Data:", topRated.data);
-
-        // Safe State Setting
         setLatestItems(Array.isArray(latest.data) ? latest.data : []);
         setReviews(Array.isArray(reviewData.data) ? reviewData.data : []);
         setTopRatedItems(Array.isArray(topRated.data) ? topRated.data : []);
       } catch (err) {
         console.error("Error fetching home data:", err);
-        // No need to reset to [] here as they are initialized as []
       }
     };
     fetchData();
@@ -71,15 +64,23 @@ const Home = () => {
     }
   }, [location.state]);
 
-  // --- LOGIC FIX: Calculate displayed reviews cleanly outside JSX ---
-  // Ensure 'reviews' is an array before slicing
   const safeReviews = Array.isArray(reviews) ? reviews : [];
   const displayedReviews = showAllReviews
     ? safeReviews
-    : safeReviews.slice(0, 3);
+    : safeReviews.slice(0, 5);
 
   return (
     <div className="w-full min-h-screen bg-white text-black flex flex-col">
+      <style>{`
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
+
       <Navbar />
 
       {/* Hero Section */}
@@ -116,7 +117,8 @@ const Home = () => {
       {/* Categories */}
       <section id="categories" className="py-20 bg-black text-white">
         <h2 className="text-center text-3xl font-bold mb-10">Categories</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-6xl mx-auto px-6">
+
+        <div className="flex md:grid md:grid-cols-4 gap-6 max-w-6xl mx-auto px-6 overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-4 md:pb-0">
           {[
             { name: "Phones", img: image1 },
             { name: "Watches", img: image2 },
@@ -125,6 +127,7 @@ const Home = () => {
           ].map((cat, i) => (
             <motion.div
               key={cat.name}
+              className="min-w-[200px] md:min-w-0 flex-shrink-0 snap-center"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -133,7 +136,7 @@ const Home = () => {
             >
               <Link
                 to={`/category/${cat.name}`}
-                className="relative group rounded-2xl overflow-hidden shadow-xl"
+                className="relative group rounded-2xl overflow-hidden shadow-xl block h-full"
               >
                 <img
                   src={cat.img}
@@ -157,11 +160,12 @@ const Home = () => {
       {/* New Ones */}
       <section id="new-ones" className="py-20 bg-white">
         <h2 className="text-center text-3xl font-bold mb-10">New Ones</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 max-w-6xl mx-auto px-6">
-          {/* FIX: Force array check inline as a failsafe */}
+
+        <div className="flex md:grid md:grid-cols-4 gap-8 max-w-6xl mx-auto px-6 overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-4 md:pb-0">
           {(Array.isArray(latestItems) ? latestItems : []).map((item, i) => (
             <motion.div
               key={item._id}
+              className="min-w-[260px] md:min-w-0 flex-shrink-0 snap-center"
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ delay: i * 0.1 }}
@@ -169,23 +173,34 @@ const Home = () => {
             >
               <Link
                 to={`/item/${item._id}`}
-                className="bg-white rounded-2xl shadow hover:shadow-xl overflow-hidden flex flex-col"
+                className="bg-white rounded-2xl shadow hover:shadow-xl overflow-hidden flex flex-col h-full border border-gray-100"
               >
-                {item.coverImage && (
-                  <img
-                    src={`${API_BASE.replace("/api", "")}/uploads/${
-                      item.coverImage
-                    }`}
-                    alt={item.title}
-                    className="w-full h-48 object-cover"
-                  />
-                )}
+                <div className="w-full h-48 relative bg-gray-200 flex-shrink-0">
+                  {item.coverImage ? (
+                    <img
+                      src={`${API_BASE.replace("/api", "")}/uploads/${
+                        item.coverImage
+                      }`}
+                      alt={item.title}
+                      className="w-full h-full object-cover absolute inset-0"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <span className="text-xs uppercase font-bold">
+                        No Image
+                      </span>
+                    </div>
+                  )}
+                </div>
+
                 <div className="p-4 flex flex-col flex-grow">
-                  <h3 className="font-semibold text-lg">{item.title}</h3>
-                  <p className="text-gray-500 text-sm flex-grow">
+                  <h3 className="font-semibold text-lg line-clamp-1">
+                    {item.title}
+                  </h3>
+                  <p className="text-gray-500 text-sm flex-grow line-clamp-2 mt-1">
                     {item.description}
                   </p>
-                  <span className="text-gray-800 font-bold mt-2">
+                  <span className="text-gray-800 font-bold mt-3">
                     ${item.price.toFixed(2)}
                   </span>
                 </div>
@@ -193,6 +208,67 @@ const Home = () => {
             </motion.div>
           ))}
         </div>
+
+        <div className="flex justify-center mt-8">
+          <Link
+            to="/items"
+            className="px-6 py-3 bg-yellow-400 text-black font-semibold rounded-lg hover:bg-gray-800 hover:text-white transition-colors duration-300"
+          >
+            View More →
+          </Link>
+        </div>
+      </section>
+
+      {/* Top Rated */}
+      <section id="top-rated" className="py-20 bg-black text-white">
+        <h2 className="text-center text-3xl font-bold mb-10">Top Rated</h2>
+
+        <div className="flex md:grid md:grid-cols-4 gap-8 max-w-6xl mx-auto px-6 overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-4 md:pb-0">
+          {(Array.isArray(latestItems) ? latestItems : []).map((item, i) => (
+            <motion.div
+              key={item._id}
+              className="min-w-[260px] md:min-w-0 flex-shrink-0 snap-center"
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ delay: i * 0.1 }}
+              viewport={{ once: true }}
+            >
+              <Link
+                to={`/item/${item._id}`}
+                className="bg-white rounded-2xl shadow hover:shadow-xl overflow-hidden flex flex-col h-full border border-gray-100"
+              >
+                <div className="w-full h-48 relative bg-gray-200 flex-shrink-0">
+                  {item.coverImage ? (
+                    <img
+                      src={`${API_BASE.replace("/api", "")}/uploads/${
+                        item.coverImage
+                      }`}
+                      alt={item.title}
+                      className="w-full h-full object-cover absolute inset-0"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <span className="text-sm">No Image</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-4 flex flex-col flex-grow">
+                  <h3 className="font-semibold text-lg line-clamp-1 text-black">
+                    {item.title}
+                  </h3>
+                  <p className="text-gray-500 text-sm flex-grow line-clamp-2 mt-1">
+                    {item.description}
+                  </p>
+                  <span className="text-gray-800 font-bold mt-3">
+                    ${item.price.toFixed(2)}
+                  </span>
+                </div>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+
         <div className="flex justify-center mt-8">
           <Link
             to="/items"
@@ -203,68 +279,17 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Top Rated */}
-      <section id="top-rated" className="py-20 bg-black text-white">
-        <h2 className="text-center text-3xl font-bold mb-10">Top Rated</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 max-w-6xl mx-auto px-6">
-          {/* FIX: Force array check inline as a failsafe */}
-          {(Array.isArray(topRatedItems) ? topRatedItems : []).map(
-            (item, i) => (
-              <motion.div
-                key={item._id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.1 }}
-                viewport={{ once: true }}
-              >
-                <Link
-                  to={`/item/${item._id}`}
-                  className="bg-white text-black rounded-2xl shadow hover:shadow-xl overflow-hidden flex flex-col"
-                >
-                  {item.coverImage && (
-                    <img
-                      src={`${API_BASE.replace("/api", "")}/uploads/${
-                        item.coverImage
-                      }`}
-                      alt={item.title}
-                      className="w-full h-48 object-cover"
-                    />
-                  )}
-                  <div className="p-4 flex flex-col flex-grow">
-                    <h3 className="font-semibold text-lg">{item.title}</h3>
-                    <p className="text-gray-600 text-sm flex-grow">
-                      {item.description}
-                    </p>
-                    <span className="text-gray-900 font-bold mt-2">
-                      ${item.price.toFixed(2)}
-                    </span>
-                  </div>
-                </Link>
-              </motion.div>
-            )
-          )}
-        </div>
-        <div className="flex justify-center mt-6">
-          <Link
-            to="/top-rated"
-            className="px-6 py-2 bg-yellow-400 text-black font-semibold rounded-lg hover:bg-gray-200 transition"
-          >
-            More →
-          </Link>
-        </div>
-      </section>
-
       {/* Reviews */}
       <section id="reviews" className="py-20 bg-gray-100">
         <h2 className="text-center text-3xl font-bold mb-10">
           What Our Customers Say
         </h2>
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-6">
-          {/* FIX: Use the calculated 'displayedReviews' variable */}
+
+        <div className="flex md:grid md:grid-cols-3 gap-8 max-w-6xl mx-auto px-6 overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-4 md:pb-0">
           {displayedReviews.map((review, i) => (
             <motion.div
               key={review._id}
-              className="bg-white rounded-xl shadow hover:shadow-lg p-6 flex flex-col"
+              className="min-w-[300px] md:min-w-0 flex-shrink-0 snap-center bg-white rounded-xl shadow hover:shadow-lg p-6 flex flex-col"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.2 }}
@@ -298,7 +323,8 @@ const Home = () => {
             </motion.div>
           ))}
         </div>
-        {safeReviews.length > 3 && (
+
+        {safeReviews.length > 5 && (
           <div className="flex justify-center mt-8">
             <button
               onClick={() => setShowAllReviews(!showAllReviews)}

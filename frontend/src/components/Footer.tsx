@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { FaFacebook, FaTiktok, FaYoutube } from "react-icons/fa";
-import axios from "axios"; // Import axios
+import axios from "axios";
 
-// Get the API base URL from your .env file
 const API_BASE = import.meta.env.VITE_API_BASE;
 
 const Footer = () => {
@@ -26,7 +25,6 @@ const Footer = () => {
     setFormStatus({ message: "", type: "" });
 
     try {
-      // Call the new backend endpoint
       await axios.post(`${API_BASE}/contact/send`, { email, message });
       setFormStatus({
         message: "Message sent successfully!",
@@ -45,19 +43,19 @@ const Footer = () => {
   };
 
   return (
-    <div>
-      {/* Footer */}
-      <footer className="bg-white text-black py-20 px-52 flex flex-col md:flex-row justify-between text-center md:text-left gap-12">
-        {/* Updated Contact Us Section */}
-        <div className="w-full md:w-2/3">
+    <div className="w-full">
+      {/* Footer Container */}
+      <footer className="bg-white text-black py-10 px-6 md:px-12 lg:px-32 xl:px-52 flex flex-col md:flex-row justify-between gap-10 md:gap-20">
+        {/* Contact Us Section */}
+        <div className="w-full md:w-2/3 flex flex-col text-center md:text-left">
           <p className="font-semibold text-lg mb-4">Contact Us</p>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4 w-full">
             <input
               type="email"
               placeholder="Your Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg text-black bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black"
+              className="w-full px-4 py-3 border rounded-lg text-black bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black"
               required
             />
             <textarea
@@ -65,7 +63,7 @@ const Footer = () => {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               rows={4}
-              className="w-full px-4 py-2 border rounded-lg text-black bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black"
+              className="w-full px-4 py-3 border rounded-lg text-black bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black"
               required
             />
             <button
@@ -89,50 +87,57 @@ const Footer = () => {
           </form>
         </div>
 
-        {/* Links Section */}
-        <div className="w-full md:w-auto space-y-3">
-          <p className="font-semibold text-lg mb-4 invisible hidden md:block">
-            Links
-          </p>{" "}
-          {/* Spacer */}
-          <a href="#about" className="block hover:underline">
-            About Us
-          </a>
-          <a href="/privacy" className="block hover:underline">
-            Privacy Policy
-          </a>
-          <a href="/terms" className="block hover:underline">
-            Terms of Service
-          </a>
-          <p className="font-semibold text-lg mb-4">Follow Us</p>
-          <div className="flex space-x-6 justify-center md:justify-start">
-            <a
-              href="#"
-              aria-label="Facebook"
-              className="hover:text-gray-600 transition"
-            >
-              <FaFacebook size={24} />
-            </a>
-            <a
-              href="#"
-              aria-label="Tiktok"
-              className="hover:text-gray-600 transition"
-            >
-              <FaTiktok size={24} />
-            </a>
-            <a
-              href="#"
-              aria-label="Youtube"
-              className="hover:text-gray-600 transition"
-            >
-              <FaYoutube size={24} />
-            </a>
+        {/* Links & Social Section */}
+        <div className="w-full md:w-1/3 flex flex-col items-center md:items-start gap-8 text-center md:text-left">
+          {/* Navigation Links */}
+          <div className="w-full">
+            <p className="font-semibold text-lg mb-4">Links</p>
+            <div className="space-y-2 flex flex-col items-center md:items-start">
+              <a href="#about" className="hover:underline">
+                About Us
+              </a>
+              <a href="/privacy" className="hover:underline">
+                Privacy Policy
+              </a>
+              <a href="/terms" className="hover:underline">
+                Terms of Service
+              </a>
+            </div>
+          </div>
+
+          {/* Social Icons */}
+          <div className="w-full">
+            <p className="font-semibold text-lg mb-4">Follow Us</p>
+            <div className="flex gap-6 justify-center md:justify-start">
+              <a
+                href="#"
+                aria-label="Facebook"
+                className="hover:text-gray-600 transition transform hover:scale-110"
+              >
+                <FaFacebook size={24} />
+              </a>
+              <a
+                href="#"
+                aria-label="Tiktok"
+                className="hover:text-gray-600 transition transform hover:scale-110"
+              >
+                <FaTiktok size={24} />
+              </a>
+              <a
+                href="#"
+                aria-label="Youtube"
+                className="hover:text-gray-600 transition transform hover:scale-110"
+              >
+                <FaYoutube size={24} />
+              </a>
+            </div>
           </div>
         </div>
       </footer>
 
-      <div className="bg-black text-white text-center py-4 text-sm">
-        © All Right Reserved
+      {/* Copyright Bar */}
+      <div className="bg-black text-white text-center py-4 text-sm px-4">
+        © {new Date().getFullYear()} All Rights Reserved
       </div>
     </div>
   );
